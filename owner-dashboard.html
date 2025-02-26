@@ -6,6 +6,23 @@
     <title>Owner Dashboard - Cloudline Technologies</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
 </head>
 <body>
     <div class="sidebar">
@@ -40,11 +57,76 @@
                 <h3>Reports</h3>
                 <ul id="reports-list"></ul>
             </div>
+            <!-- Add a table for employee data -->
+            <div id="employees-section" style="display: none;">
+                <h3>Employee Details</h3>
+                <table id="employee-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Employee data will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
         document.getElementById('logout-btn').addEventListener('click', Logout);
+
+        // Fetch and display employees when the "View Employees" button is clicked
+        document.getElementById('employees-btn').addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('You must be logged in to view employees.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch('http://localhost:3003/employees', {
+                    headers: { 'Authorization': token }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch employees');
+                }
+
+                const employees = await response.json();
+                displayEmployees(employees);
+                document.getElementById('employees-section').style.display = 'block'; // Show the table
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load employee data');
+            }
+        });
+
+        // Display employee data in the table
+        function displayEmployees(employees) {
+            const tableBody = document.querySelector('#employee-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            employees.forEach(employee => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${employee.em_id}</td>
+                    <td>${employee.em_fname}</td>
+                    <td>${employee.em_lname}</td>
+                    <td>${employee.em_email}</td>
+                    <td>${employee.em_tel}</td>
+                    <td>${employee.role}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
     </script>
 
     <script src="script.js"></script>

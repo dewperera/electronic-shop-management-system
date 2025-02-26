@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Employees</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Employee Details</h1>
+    <table id="employee-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Employee data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch employee data from the backend
+        async function fetchEmployees() {
+            try {
+                const response = await fetch('http://localhost:3003/employees');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch employees');
+                }
+                const employees = await response.json();
+                displayEmployees(employees);
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load employee data');
+            }
+        }
+
+        // Display employee data in the table
+        function displayEmployees(employees) {
+            const tableBody = document.querySelector('#employee-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            employees.forEach(employee => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${employee.em_id}</td>
+                    <td>${employee.em_fname}</td>
+                    <td>${employee.em_lname}</td>
+                    <td>${employee.em_email}</td>
+                    <td>${employee.em_tel}</td>
+                    <td>${employee.role}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Fetch and display employees when the page loads
+        fetchEmployees();
+    </script>
+</body>
+</html>
