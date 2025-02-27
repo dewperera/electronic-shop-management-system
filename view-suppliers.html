@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Suppliers</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Supplier Details</h1>
+    <table id="supplier-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Supplier data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch supplier data from the backend
+        async function fetchSuppliers() {
+            try {
+                const response = await fetch('http://localhost:3003/suppliers'); // Adjust the URL to your backend endpoint
+                if (!response.ok) {
+                    throw new Error('Failed to fetch suppliers');
+                }
+                const suppliers = await response.json();
+                displaySuppliers(suppliers);
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load supplier data');
+            }
+        }
+
+        // Display supplier data in the table
+        function displaySuppliers(suppliers) {
+            const tableBody = document.querySelector('#supplier-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            suppliers.forEach(supplier => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${supplier.sup_id}</td>
+                    <td>${supplier.sup_name}</td>
+                    <td>${supplier.sup_email}</td>
+                    <td>${supplier.sup_phone}</td>
+                    <td>${supplier.sup_address}</td>
+                    <td>${supplier.sup_date}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Fetch and display suppliers when the page loads
+        fetchSuppliers();
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Employees</title>
+    <title>Employee Management</title>
     <style>
         table {
             width: 100%;
@@ -20,10 +20,57 @@
         th {
             background-color: #f4f4f4;
         }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 5px;
+            padding: 8px;
+        }
     </style>
 </head>
 <body>
-    <h1>Employee Details</h1>
+    <h1>Employee Management</h1>
+
+    <!-- Add Employee Form -->
+    <h2>Add Employee</h2>
+    <form id="add-employee-form">
+        <input type="text" id="em_fname" placeholder="First Name" required>
+        <input type="text" id="em_lname" placeholder="Last Name" required>
+        <input type="email" id="em_email" placeholder="Email" required>
+        <input type="text" id="em_tel" placeholder="Phone" required>
+        <input type="text" id="role" placeholder="Role" required>
+        <button type="submit">Add Employee</button>
+    </form>
+
+    <!-- Update Employee Form -->
+    <h2>Update Employee</h2>
+    <form id="update-employee-form">
+        <input type="number" id="update-em_id" placeholder="Employee ID" required>
+        <input type="text" id="update-em_fname" placeholder="First Name" required>
+        <input type="text" id="update-em_lname" placeholder="Last Name" required>
+        <input type="email" id="update-em_email" placeholder="Email" required>
+        <input type="text" id="update-em_tel" placeholder="Phone" required>
+        <input type="text" id="update-role" placeholder="Role" required>
+        <button type="submit">Update Employee</button>
+    </form>
+
+    <!-- Delete Employee Form -->
+    <h2>Delete Employee</h2>
+    <form id="delete-employee-form">
+        <input type="number" id="delete-em_id" placeholder="Employee ID" required>
+        <button type="submit">Delete Employee</button>
+    </form>
+
+    <!-- Search Employee Form -->
+    <h2>Search Employee</h2>
+    <form id="search-employee-form">
+        <input type="number" id="search-em_id" placeholder="Employee ID" required>
+        <button type="submit">Search Employee</button>
+    </form>
+
+    <!-- Employee Table -->
+    <h2>Employee Details</h2>
     <table id="employee-table">
         <thead>
             <tr>
@@ -41,6 +88,9 @@
     </table>
 
     <script>
+        // Fetch and display employees when the page loads
+        fetchEmployees();
+
         // Fetch employee data from the backend
         async function fetchEmployees() {
             try {
@@ -75,8 +125,100 @@
             });
         }
 
-        // Fetch and display employees when the page loads
-        fetchEmployees();
+        // Add Employee
+        document.getElementById('add-employee-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newEmployee = {
+                em_fname: document.getElementById('em_fname').value,
+                em_lname: document.getElementById('em_lname').value,
+                em_email: document.getElementById('em_email').value,
+                em_tel: document.getElementById('em_tel').value,
+                role: document.getElementById('role').value,
+            };
+
+            try {
+                const response = await fetch('http://localhost:3003/employees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEmployee),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to add employee');
+                }
+                alert('Employee added successfully');
+                fetchEmployees(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                alert('Failed to add employee');
+            }
+        });
+
+        // Update Employee
+        document.getElementById('update-employee-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const em_id = document.getElementById('update-em_id').value;
+            const updatedEmployee = {
+                em_fname: document.getElementById('update-em_fname').value,
+                em_lname: document.getElementById('update-em_lname').value,
+                em_email: document.getElementById('update-em_email').value,
+                em_tel: document.getElementById('update-em_tel').value,
+                role: document.getElementById('update-role').value,
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3003/employees/${em_id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedEmployee),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to update employee');
+                }
+                alert('Employee updated successfully');
+                fetchEmployees(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                alert('Failed to update employee');
+            }
+        });
+
+        // Delete Employee
+        document.getElementById('delete-employee-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const em_id = document.getElementById('delete-em_id').value;
+
+            try {
+                const response = await fetch(`http://localhost:3003/employees/${em_id}`, {
+                    method: 'DELETE',
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to delete employee');
+                }
+                alert('Employee deleted successfully');
+                fetchEmployees(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                alert('Failed to delete employee');
+            }
+        });
+
+        // Search Employee by ID
+        document.getElementById('search-employee-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const em_id = document.getElementById('search-em_id').value;
+
+            try {
+                const response = await fetch(`http://localhost:3003/employees/${em_id}`);
+                if (!response.ok) {
+                    throw new Error('Employee not found');
+                }
+                const employee = await response.json();
+                displayEmployees([employee]); // Display the single employee
+            } catch (error) {
+                console.error(error);
+                alert('Employee not found');
+            }
+        });
     </script>
 </body>
 </html>

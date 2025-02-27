@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Profile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Owner Profile</h1>
+
+        <!-- Profile Details -->
+        <div id="profile-details">
+            <p><strong>First Name:</strong> <span id="owner_fname"></span></p>
+            <p><strong>Last Name:</strong> <span id="owner_lname"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Phone Number:</strong> <span id="phone_number"></span></p>
+            <button id="edit-profile-btn">Edit Profile</button>
+        </div>
+
+        <!-- Edit Profile Form (Hidden by Default) -->
+        <form id="edit-profile-form" style="display: none;">
+            <h2>Edit Profile</h2>
+            <input type="text" id="edit-owner_fname" placeholder="First Name" required>
+            <input type="text" id="edit-owner_lname" placeholder="Last Name" required>
+            <input type="email" id="edit-email" placeholder="Email" required>
+            <input type="text" id="edit-phone_number" placeholder="Phone Number" required>
+            <button type="submit">Save Changes</button>
+            <button type="button" id="cancel-edit-btn">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        // Fetch and display owner profile details
+        async function fetchOwnerProfile() {
+            try {
+                const response = await fetch('http://localhost:3003/owner');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch owner details');
+                }
+                const owner = await response.json();
+                displayOwnerProfile(owner);
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load owner details');
+            }
+        }
+
+        // Display owner profile details
+        function displayOwnerProfile(owner) {
+            document.getElementById('owner_fname').textContent = owner.owner_fname;
+            document.getElementById('owner_lname').textContent = owner.owner_lname;
+            document.getElementById('email').textContent = owner.email;
+            document.getElementById('phone_number').textContent = owner.phone_number;
+        }
+
+        // Show edit form and populate with current details
+        document.getElementById('edit-profile-btn').addEventListener('click', () => {
+            document.getElementById('profile-details').style.display = 'none';
+            document.getElementById('edit-profile-form').style.display = 'block';
+
+            // Populate form with current details
+            document.getElementById('edit-owner_fname').value = document.getElementById('owner_fname').textContent;
+            document.getElementById('edit-owner_lname').value = document.getElementById('owner_lname').textContent;
+            document.getElementById('edit-email').value = document.getElementById('email').textContent;
+            document.getElementById('edit-phone_number').value = document.getElementById('phone_number').textContent;
+        });
+
+        // Cancel edit and show profile details
+        document.getElementById('cancel-edit-btn').addEventListener('click', () => {
+            document.getElementById('edit-profile-form').style.display = 'none';
+            document.getElementById('profile-details').style.display = 'block';
+        });
+
+        // Save updated profile details
+        document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const updatedProfile = {
+                owner_fname: document.getElementById('edit-owner_fname').value,
+                owner_lname: document.getElementById('edit-owner_lname').value,
+                email: document.getElementById('edit-email').value,
+                phone_number: document.getElementById('edit-phone_number').value,
+            };
+
+            try {
+                const response = await fetch('http://localhost:3003/owner', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedProfile),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to update profile');
+                }
+                alert('Profile updated successfully');
+                fetchOwnerProfile(); // Refresh profile details
+                document.getElementById('edit-profile-form').style.display = 'none';
+                document.getElementById('profile-details').style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert('Failed to update profile');
+            }
+        });
+
+        // Fetch owner profile details when the page loads
+        fetchOwnerProfile();
+    </script>
+</body>
+</html>

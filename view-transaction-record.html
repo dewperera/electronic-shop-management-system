@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner - Transaction Records</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Owner - Transaction Records</h1>
+
+        <!-- Transaction Table -->
+        <div class="table-container">
+            <table id="transactions-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Transaction data will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display transactions when the page loads
+        fetchTransactions();
+
+        // Fetch transactions data from the backend
+        async function fetchTransactions() {
+            try {
+                const response = await fetch('http://localhost:3003/transactions', {
+                    headers: { 'Role': 'owner' } // Pass the role in the header
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch transactions');
+                }
+                const transactions = await response.json();
+                displayTransactions(transactions);
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load transactions');
+            }
+        }
+
+        // Display transactions data in the table
+        function displayTransactions(transactions) {
+            const tableBody = document.querySelector('#transactions-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaction.transaction_id}</td>
+                    <td>${transaction.date}</td>
+                    <td>${transaction.description}</td>
+                    <td>${transaction.amount}</td>
+                    <td>${transaction.type}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
