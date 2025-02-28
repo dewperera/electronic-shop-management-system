@@ -93,7 +93,7 @@ body {
     width: 100%;
 }
 
-/*--------Sales Reports-------*/
+--------Sales Reports-------
 /* General Styles */
 body {
     font-family: Arial, sans-serif;
@@ -175,13 +175,13 @@ tr:hover {
 /*-----Customer review-----*/
 
 /* General Styles */
-body {
+/* body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
     margin: 0;
     padding: 20px;
     color: #333;
-}
+} */
 
 .container {
     max-width: 1200px;
@@ -227,13 +227,13 @@ tr:hover {
 
 /*------Owner Profile------*/
 /* General Styles */
-body {
+/* body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
     margin: 0;
     padding: 20px;
     color: #333;
-}
+} */
 
 .container {
     max-width: 600px;
