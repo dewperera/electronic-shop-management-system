@@ -11,6 +11,8 @@ app.use(express.json());
 const cors = require("cors");
 app.use(cors());
 
+console.log("🚀 Server started and running...");
+
 
 //MySQL connection
 const db = mysql.createConnection({
@@ -57,18 +59,6 @@ app.get('/employees', (req, res) => {
 });
 
 
-// app.post('/employees', (req, res) => {
-//     const { em_nic, em_fname, em_lname, em_email, em_tel, em_city, role } = req.body;
-//     const query = 'INSERT INTO employees (em_nic, em_fname, em_lname, em_email, em_tel, em_city, role) VALUES (?, ?, ?, ?, ?, ?, ?)';
-//     db.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role], (err, results) => {
-//         if (err) {
-//             console.error('Error adding employee:', err);
-//             res.status(500).send('Error adding employee');
-//         } else {
-//             res.status(201).send('Employee added successfully');
-//         }
-//     });
-// });
 
 // Add a new employee
 app.post('/employees', (req, res) => {
@@ -91,7 +81,9 @@ app.post('/employees', (req, res) => {
 
 
 
-// // Update an employee
+
+
+// Update an employee
 // app.put('/employees/:id', (req, res) => {
 //     const { em_nic, em_fname, em_lname, em_email, em_tel, em_city, role } = req.body;
 //     const em_id = req.params.id;
@@ -110,9 +102,9 @@ app.post('/employees', (req, res) => {
 //             return res.status(404).json({ error: 'Employee not found' });
 //         }
 
-//         // Update the employee
-//         const query = 'UPDATE employees SET em_nic =?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ?, role = ? WHERE em_id = ?';
-//         db.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role], (err, updateResults) => {
+//         // Update the employee with the correct parameter array
+//         const query = 'UPDATE employees SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ?, role = ? WHERE em_id = ?';
+//         db.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role, em_id], (err, updateResults) => {
 //             if (err) {
 //                 console.error('Error updating employee:', err);
 //                 return res.status(500).json({ error: 'Error updating employee' });
@@ -121,39 +113,6 @@ app.post('/employees', (req, res) => {
 //         });
 //     });
 // });
-
-
-
-// Update an employee
-app.put('/employees/:id', (req, res) => {
-    const { em_nic, em_fname, em_lname, em_email, em_tel, em_city, role } = req.body;
-    const em_id = req.params.id;
-
-    if (!em_nic || !em_fname || !em_lname || !em_email || !em_tel || !em_city || !role) {
-        return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Check if employee exists before updating
-    db.query('SELECT * FROM employees WHERE em_id = ?', [em_id], (err, results) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Employee not found' });
-        }
-
-        // Update the employee with the correct parameter array
-        const query = 'UPDATE employees SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ?, role = ? WHERE em_id = ?';
-        db.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role, em_id], (err, updateResults) => {
-            if (err) {
-                console.error('Error updating employee:', err);
-                return res.status(500).json({ error: 'Error updating employee' });
-            }
-            res.json({ message: 'Employee updated successfully' });
-        });
-    });
-});
 
 
 
@@ -337,19 +296,235 @@ app.post('/sales', (req, res) => {
     });
 });
 
+
+/*--------supplier Routes--------*/
+// Fetch all suppliers
+app.get('/supplier', (req, res) => {
+    const query = 'SELECT * FROM supplier';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching suppliers:', err);
+            res.status(500).send('Error fetching suppliers');
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+
+// Add a new supplier
+app.post('/supplier', (req, res) => {
+    const { sup_fname, sup_lname, sup_email, sup_tel, sup_address } = req.body;
+
+    if (!sup_fname || !sup_lname || !sup_email || !sup_tel || !sup_address) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const query = 'INSERT INTO supplier ( sup_fname, sup_lname, sup_email, sup_tel, sup_address) VALUES (?, ?, ?, ?, ?)';
+    
+    db.query(query, [ sup_fname, sup_lname, sup_email, sup_tel, sup_address], (err, results) => {
+        if (err) {
+            console.error('Error adding supplier:', err);
+            return res.status(500).json({ error: 'Error adding supplier' });
+        }
+        res.status(201).json({ message: 'supplier added successfully', supplierId: results.insertId });
+    });
+});
+
+
+// Update an supplier
+app.put('/supplier/:id', (req, res) => {
+    const {sup_fname, sup_lname, sup_email, sup_tel, sup_address} = req.body;
+    const sup_id = req.params.id;
+
+    if (!sup_fname || !sup_lname || !sup_email || !sup_tel || !sup_address) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Check if supplier exists before updating
+    db.query('SELECT * FROM supplier WHERE sup_id = ?', [sup_id], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'supplier not found' });
+        }
+
+        // Update the employee with the correct parameter array
+        const query = 'UPDATE supplier SET sup_fname = ?, sup_lname = ?, sup_email = ?, sup_tel = ?, sup_address = ? WHERE sup_id = ?';
+        db.query(query, [sup_fname, sup_lname, sup_email, sup_tel, sup_address, sup_id], (err, updateResults) => {
+            if (err) {
+                console.error('Error updating supplier:', err);
+                return res.status(500).json({ error: 'Error updating supplier' });
+            }
+            res.json({ message: 'supplier updated successfully' });
+        });
+    });
+});
+
+
+// Delete an supplier
+app.delete('/supplier/:id', (req, res) => {
+    const sup_id = req.params.id; // Fix variable name
+
+    const query = 'DELETE FROM supplier WHERE sup_id = ?';
+    db.query(query, [sup_id], (err, results) => {
+        if (err) {
+            console.error('Error deleting supplier:', err);
+            res.status(500).send('Error deleting supplier');
+        } else {
+            res.send('Supplier deleted successfully');
+        }
+    });
+});
+
+
+// Fetch a single supplier by ID
+app.get('/supplier/:id', (req, res) => {
+    const sup_id = req.params.id;
+    const query = 'SELECT * FROM supplier WHERE sup_id = ?';
+    db.query(query, [sup_id], (err, results) => {
+        if (err) {
+            console.error('Error fetching supplier:', err);
+            res.status(500).send('Error fetching supplier');
+        } else if (results.length === 0) {
+            res.status(404).send('supplier not found');
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+
+
+
+
+
+// Replace the duplicate route with this updated version that handles both cases
+app.put('/employees/:id', (req, res) => {
+    const em_id = req.params.id;
+    const { em_nic, em_fname, em_lname, em_email, em_tel, em_city, role } = req.body;
+    
+    console.log("Update request for employee:", em_id);
+    console.log("Received data:", req.body);
+    
+    // Check if the request is from an accountant (without role field)
+    if (em_nic && em_fname && em_lname && em_email && em_tel && em_city && !role) {
+        // This is likely an accountant updating their own profile
+        const query = `
+            UPDATE employees 
+            SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ? 
+            WHERE em_id = ?
+        `;
+        
+        db.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, em_id], (err, results) => {
+            if (err) {
+                console.error('Error updating employee profile:', err);
+                return res.status(500).json({ error: 'Error updating employee profile' });
+            }
+            
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ error: 'Employee not found' });
+            }
+            
+            res.json({ message: 'Employee profile updated successfully' });
+        });
+    } 
+    // Owner updating an employee (with role field)
+    else if (em_nic && em_fname && em_lname && em_email && em_tel && em_city && role) {
+        const query = 'UPDATE employees SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ?, role = ? WHERE em_id = ?';
+        
+        db.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role, em_id], (err, results) => {
+            if (err) {
+                console.error('Error updating employee:', err);
+                return res.status(500).json({ error: 'Error updating employee' });
+            }
+            
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ error: 'Employee not found' });
+            }
+            
+            res.json({ message: 'Employee updated successfully' });
+        });
+    }
+    else {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+});
+
+
+
+
+
+
+
+// //update accountant
+// app.get('/employees', (req, res) => {
+//     const query = "SELECT * FROM employees WHERE role = 'Accountant'"; // Fetch only accountants
+//     db.query(query, (err, results) => {
+//         if (err) {
+//             console.error('Error fetching accountant:', err);
+//             return res.status(500).json({ error: 'Error fetching accountant' });
+//         }
+
+//         console.log(results); // Log the results for debugging
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: 'No accountants found' });
+//         }
+
+//         res.json(results); // Return the results as JSON
+//     });
+// });
+
+
+//get accountant
+// Update an accountant's profile (only for accountant)
+// app.put('/employees/:id', (req, res) => {
+//     const { em_nic, em_fname, em_lname, em_email, em_tel, em_city } = req.body;
+//     const em_id = req.params.id;
+
+//     console.log("Incoming Update Request for Accountant:");
+//     console.log("Received em_id:", em_id);
+//     console.log("Received Data:", req.body);
+
+//     // Check for missing fields
+//     if (!em_nic || !em_fname || !em_lname || !em_email || !em_tel || !em_city) {
+//         console.error("Missing Fields:", req.body);
+//         return res.status(400).json({ error: "Missing required fields" });
+//     }
+
+//     const query = `
+//         UPDATE employees 
+//         SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ? 
+//         WHERE em_id = ? AND role = 'Accountant'
+//     `;
+
+//     const values = [em_nic, em_fname, em_lname, em_email, em_tel, em_city, em_id];
+
+//     db.query(query, values, (err, results) => {
+//         if (err) {
+//             console.error('Error updating accountant:', err);
+//             return res.status(500).json({ error: 'Error updating accountant' });
+//         }
+
+//         console.log("Query Execution Results:", results);
+
+//         if (results.affectedRows === 0) {
+//             console.warn("Accountant not found or unauthorized:", em_id);
+//             return res.status(404).json({ message: 'Accountant not found or unauthorized' });
+//         }
+
+//         console.log("Accountant updated successfully.");
+//         res.json({ message: 'Accountant updated successfully' });
+//     });
+// });
+
+
+
+
 // // Start the server
 const PORT = process.env.PORT || 5502;
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-// Start the server
-// app.listen(port, () => {
-//     console.log(`Server is running on http://localhost:${port}`);
-//   });
-
-// Start the server
-// const PORT = 5501;
-// app.listen(PORT, () => {
-//     console.log(Server running on port ${PORT});
-// });

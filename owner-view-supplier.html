@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Suppliers</title>
+    <title>Supplier Management</title>
     <style>
         table {
             width: 100%;
@@ -20,19 +20,30 @@
         th {
             background-color: #f4f4f4;
         }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 5px;
+            padding: 8px;
+        }
     </style>
 </head>
 <body>
-    <h1>Supplier Details</h1>
+    <h1> Suppliers </h1>
+
+    <!-- Supplier Table -->
+    <h2>Supplier Details</h2>
     <table id="supplier-table">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
+                <th>First Name</th>
+                <th>Last Name</th>
                 <th>Address</th>
-                <th>Date</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Register Date</th>
             </tr>
         </thead>
         <tbody>
@@ -41,20 +52,27 @@
     </table>
 
     <script>
+        // Fetch and display suppliers when the page loads
+        fetchSuppliers();
+
         // Fetch supplier data from the backend
-        async function fetchSuppliers() {
-            try {
-                const response = await fetch('http://localhost:3003/suppliers'); // Adjust the URL to your backend endpoint
-                if (!response.ok) {
-                    throw new Error('Failed to fetch suppliers');
-                }
-                const suppliers = await response.json();
-                displaySuppliers(suppliers);
-            } catch (error) {
-                console.error(error);
-                alert('Failed to load supplier data');
-            }
+      // Fetch all suppliers
+
+      
+      
+async function fetchSuppliers() {
+    try {
+        const response = await fetch('http://localhost:5502/supplier'); // Corrected endpoint
+        if (!response.ok) {
+            throw new Error('Failed to fetch suppliers');
         }
+        const suppliers = await response.json();
+        displaySuppliers(suppliers);
+    } catch (error) {
+        console.error(error);
+        alert('Failed to load supplier data');
+    }
+}
 
         // Display supplier data in the table
         function displaySuppliers(suppliers) {
@@ -65,18 +83,17 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${supplier.sup_id}</td>
-                    <td>${supplier.sup_name}</td>
-                    <td>${supplier.sup_email}</td>
-                    <td>${supplier.sup_phone}</td>
+                    <td>${supplier.sup_fname}</td>
+                    <td>${supplier.sup_lname}</td>
                     <td>${supplier.sup_address}</td>
+                    <td>${supplier.sup_tel}</td>
+                    <td>${supplier.sup_email}</td>
                     <td>${supplier.sup_date}</td>
                 `;
                 tableBody.appendChild(row);
             });
         }
 
-        // Fetch and display suppliers when the page loads
-        fetchSuppliers();
     </script>
 </body>
 </html>

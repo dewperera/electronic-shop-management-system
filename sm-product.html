@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Showroom Manager - Product Management</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        input, button, select {
+            margin: 5px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Showroom Manager - Product Management</h1>
+
+        <!-- Product Details -->
+        <h2>Product Details</h2>
+        <table id="products-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Product data will be inserted here dynamically -->
+            </tbody>
+        </table>
+
+        <!-- Product Records -->
+        <h2>Product Records (Damaged/Outdated)</h2>
+        <table id="product-records-table">
+            <thead>
+                <tr>
+                    <th>Record ID</th>
+                    <th>Product ID</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Record Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Product records data will be inserted here dynamically -->
+            </tbody>
+        </table>
+
+        <!-- Add Product Record Form -->
+        <h2>Add Product Record</h2>
+        <form id="add-product-record-form">
+            <input type="number" id="product_id" placeholder="Product ID" required>
+            <select id="record_type" required>
+                <option value="Damaged">Damaged</option>
+                <option value="Outdated">Outdated</option>
+            </select>
+            <input type="number" id="quantity" placeholder="Quantity" required>
+            <input type="date" id="record_date" placeholder="Record Date" required>
+            <button type="submit">Add Record</button>
+        </form>
+    </div>
+
+    <script>
+        // Fetch and display products and product records when the page loads
+        fetchProducts();
+        fetchProductRecords();
+
+        // Fetch products data from the backend
+        async function fetchProducts() {
+            try {
+                const response = await fetch('http://localhost:3306/products');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch products');
+                }
+                const products = await response.json();
+                displayProducts(products);
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load products');
+            }
+        }
+
+        // Fetch product records data from the backend
+        async function fetchProductRecords() {
+            try {
+                const response = await fetch('http://localhost:3306/product-records');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch product records');
+                }
+                const productRecords = await response.json();
+                displayProductRecords(productRecords);
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load product records');
+            }
+        }
+
+        // Display products data in the table
+        function displayProducts(products) {
+            const tableBody = document.querySelector('#products-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.product_id}</td>
+                    <td>${product.product_name}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.price}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Display product records data in the table
+        function displayProductRecords(productRecords) {
+            const tableBody = document.querySelector('#product-records-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            productRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.record_id}</td>
+                    <td>${record.product_id}</td>
+                    <td>${record.record_type}</td>
+                    <td>${record.quantity}</td>
+                    <td>${record.record_date}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Add a product record
+        document.getElementById('add-product-record-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newRecord = {
+                product_id: document.getElementById('product_id').value,
+                record_type: document.getElementById('record_type').value,
+                quantity: document.getElementById('quantity').value,
+                record_date: document.getElementById('record_date').value,
+            };
+
+            try {
+                const response = await fetch('http://localhost:3306/product-records', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newRecord),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to add product record');
+                }
+                alert('Product record added successfully');
+                fetchProductRecords(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                alert('Failed to add product record');
+            }
+        });
+    </script>
+</body>
+</html>

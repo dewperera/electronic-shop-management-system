@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Management</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 5px;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Supplier Management</h1>
+
+    <!-- Add Supplier Form -->
+    <h2>Add Supplier</h2>
+    <form id="add-supplier-form">
+        <input type="text" id="sup_fname" placeholder="First Name" required>
+        <input type="text" id="sup_lname" placeholder="Last Name" required>
+        <input type="text" id="sup_address" placeholder="Address" required>
+        <input type="text" id="sup_tel" placeholder="Phone" required>
+        <input type="email" id="sup_email" placeholder="Email" required>
+        <button type="submit">Add Supplier</button>
+    </form>
+
+    <!-- Update Supplier Form -->
+    <h2>Update Supplier</h2>
+    <form id="update-supplier-form">
+        <input type="number" id="update-sup_id" placeholder="Supplier ID" required>
+        <input type="text" id="update-sup_fname" placeholder="First Name" required>
+        <input type="text" id="update-sup_lname" placeholder="Last Name" required>
+        <input type="text" id="update-sup_address" placeholder="Address" required>
+        <input type="text" id="update-sup_tel" placeholder="Phone" required>
+        <input type="email" id="update-sup_email" placeholder="Email" required>
+        <button type="submit">Update Supplier</button>
+    </form>
+
+    <!-- Delete Supplier Form -->
+    <h2>Delete Supplier</h2>
+    <form id="delete-supplier-form">
+        <input type="number" id="delete-sup_id" placeholder="Supplier ID" required>
+        <button type="submit">Delete Supplier</button>
+    </form>
+
+    <!-- Search Supplier Form -->
+    <h2>Search Supplier</h2>
+    <form id="search-supplier-form">
+        <input type="number" id="search-sup_id" placeholder="Supplier ID" required>
+        <button type="submit">Search Supplier</button>
+    </form>
+
+    <!-- Supplier Table -->
+    <h2>Supplier Details</h2>
+    <table id="supplier-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Register Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Supplier data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch and display suppliers when the page loads
+        fetchSuppliers();
+
+        // Fetch supplier data from the backend
+      // Fetch all suppliers
+
+      
+      
+async function fetchSuppliers() {
+    try {
+        const response = await fetch('http://localhost:5502/supplier'); // Corrected endpoint
+        if (!response.ok) {
+            throw new Error('Failed to fetch suppliers');
+        }
+        const suppliers = await response.json();
+        displaySuppliers(suppliers);
+    } catch (error) {
+        console.error(error);
+        alert('Failed to load supplier data');
+    }
+}
+
+        // Display supplier data in the table
+        function displaySuppliers(suppliers) {
+            const tableBody = document.querySelector('#supplier-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            suppliers.forEach(supplier => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${supplier.sup_id}</td>
+                    <td>${supplier.sup_fname}</td>
+                    <td>${supplier.sup_lname}</td>
+                    <td>${supplier.sup_address}</td>
+                    <td>${supplier.sup_tel}</td>
+                    <td>${supplier.sup_email}</td>
+                    <td>${supplier.sup_date}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+      // Add Supplier
+document.getElementById('add-supplier-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newSupplier = {
+        sup_fname: document.getElementById('sup_fname').value,
+        sup_lname: document.getElementById('sup_lname').value,
+        sup_address: document.getElementById('sup_address').value,
+        sup_tel: document.getElementById('sup_tel').value,
+        sup_email: document.getElementById('sup_email').value,
+    };
+
+    try {
+        const response = await fetch('http://localhost:5502/supplier', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSupplier),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to add supplier');
+        }
+        alert('Supplier added successfully');
+        fetchSuppliers(); // Refresh the table
+    } catch (error) {
+        console.error(error);
+        alert('Failed to add supplier');
+    }
+});
+
+        // Update Supplier
+document.getElementById('update-supplier-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const sup_id = document.getElementById('update-sup_id').value;
+    const updatedSupplier = {
+        sup_fname: document.getElementById('update-sup_fname').value,
+        sup_lname: document.getElementById('update-sup_lname').value,
+        sup_address: document.getElementById('update-sup_address').value,
+        sup_tel: document.getElementById('update-sup_tel').value,
+        sup_email: document.getElementById('update-sup_email').value,
+    };
+
+    try {
+        const response = await fetch(`http://localhost:5502/supplier/${sup_id}`, { // Corrected endpoint
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedSupplier),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update supplier');
+        }
+        alert('Supplier updated successfully');
+        fetchSuppliers(); // Refresh the table
+    } catch (error) {
+        console.error(error);
+        alert('Failed to update supplier');
+    }
+});
+
+      // Delete Supplier
+document.getElementById('delete-supplier-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const sup_id = document.getElementById('delete-sup_id').value;
+
+    try {
+        const response = await fetch(`http://localhost:5502/supplier/${sup_id}`, { // Corrected endpoint
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            throw new Error('Failed to delete supplier');
+        }
+        alert('Supplier deleted successfully');
+        fetchSuppliers(); // Refresh the table
+    } catch (error) {
+        console.error(error);
+        alert('Failed to delete supplier');
+    }
+});
+
+// Search supplier by ID
+document.getElementById('search-supplier-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sup_id = document.getElementById('search-sup_id').value;
+
+            try {
+                const response = await fetch(`http://localhost:5502/supplier/${sup_id}`);
+                if (!response.ok) {
+                    throw new Error('supplier not found');
+                }
+                const supplier = await response.json();
+                displaySuppliers([supplier]); // Display the single employee
+            } catch (error) {
+                console.error(error);
+                alert('Supplier not found');
+            }
+        });
+
+    </script>
+</body>
+</html>
