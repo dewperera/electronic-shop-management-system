@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Products - Cloudline Technologies</title>
+   <link rel="stylesheet" href="styles.css">
+   <link href="https://fonts.googleapis.com/css2?
+   family=poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-
+    awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+
+  <div class="container">
+    <div class="navbar">
+      <div class="logo">
+        <img src="Image/Logo-PNG.png" width="165px" height="70px">
+      </div>
+      <nav>
+        <ul id="MenuItems">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="products.html">Products</a></li>
+          <li><a href="">About</a></li>
+          <li><a href="">Contact</a></li>
+          <li><a href="account.html">Account</a></li>
+      </ul>
+      </nav>
+      <img src="Image/icons8-cart-50.png" width="30px" height="30px">
+      <img src="Image/icon-menu-50.png" class="menu-icon" 
+      onclick="menutoggle()">
+    </div>
+
+    </div>
+</div>
+
+
+<!---------- featured categories---------->
+<div class="small-container">
+    <div class="row row-2">
+        <h2>All Products</h2>
+        <select>
+            <option>Default Shorting</option>
+            <option>Short by price</option>
+            <option>Short by popularity</option>
+            <option>Short by sale</option>
+        </select>
+    </div>
+  <div class="row">
+    <div class="col-4">
+      <a href="product-details.html"><img src="Image/dell-desktop-computer.jpg"></a>
+      <h4>Dell I3 Desktop Computer</h4>
+      <p>Rs.150,000</p>
+    </div>
+    <div class="col-4">
+      <a href="product-laptop-details.html"><img src="Image/Best-laptops-in-2021-7-things-to-consider-when-buying-a-laptop.jpg"></a>
+      <h4>Lenovo Laptop</h4>
+      <p>Rs.180,000</p>
+    </div>
+    <div class="col-4">
+      <a href="product-canon-details.html"><img src="Image/Canon-TR8660-1136x757.jpg"></a>
+      <h4>Canon Printer</h4>
+      <p>Rs.86,000</p>
+    </div>
+    <div class="col-4">
+      <a href="product-headset-details.html"><img src="Image/kDSxfYxMRUSPTbVCtknKGh.jpg"></a>
+      <h4>Headset</h4>
+      <p>Rs.6,000</p>
+    </div>
+  </div>
+  <div class="row">
+  <div class="col-4">
+    <a href="product-moniter-details.html"><img src="Image/philips-49-678_678x452.jpg"></a>
+    <h4>Philips 49' Monitor</h4>
+    <p>Rs.159,000</p>
+  </div>
+  <div class="col-4">
+    <a href="product-pixma-details.html"><img src="Image/canon-pixma-gx6070-gx7070.png"></a>
+    <h4>Canon Pixma gx6070-gx7070</h4>
+    <p>Rs.115,000</p>
+  </div>
+  <div class="col-4">
+    <a href="product-graphics-card.html"><img src="Image/51uhBIqv3-L._SL500_.jpg"></a>
+    <h4>MSI Gaming GeForce RTX 4090 24GB</h4>
+    <p>Rs.685,000</p>
+  </div>
+  <div class="col-4">
+    <a href="product-mother-board.html"><img src="Image/971.jpg"> </a>
+    <h4>Asus Rog Strix Gaming Motherboard</h4>
+    <p>Rs.130,000</p>
+  </div>
+  </div>
+  <div class="row">
+  <div class="col-4">
+    <a href="product-projecter.html"><img src="Image/images (1).jpg"></a>
+    <h4>Havit PJ209 Projector</h4>
+    <p>Rs.62,500</p>
+  </div>
+  <div class="col-4">
+    <a href="product-cooling-pads.html"><img src="Image/download (5).jpg"></a>
+    <h4>Cooling Pads</h4>
+    <p>Rs.8,000</p>
+  </div>
+  <div class="col-4">
+    <a href="product-speaker.html"><img src="Image/download (3).jpg"></a>
+    <h4>Wireless Speakers</h4>
+    <p>Rs.17,500</p>
+  </div>
+  <div class="col-4">
+    <a href="product-mouse.html"><img src="Image/images.jpg"></a>
+    <h4>Havit Mouse</h4>
+    <p>Rs.3,000</p>
+  </div>
+  </div>
+
+  <div class="page-btn">
+    <span>1</span>
+    <span>2</span>
+    <span>3</span>
+    <span>4</span>
+    <span>&#8594</span>
+  </div>
+</div>
+
+
+<!--------footer----------->
+    <div class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="footer-col-1">
+            <img src="Image/Logo-PNG.png">
+            <p>Welcome to Cloudline Technologies (Pvt) Ltd., your trusted partner for cutting-edge IT product solutions. 
+              Established with a vision to provide the best-in-class technology products and services</p>
+          </div>
+          <div class="footer-col-2">
+            <h3>Useful Link</h3>
+            <ul>
+              <li>About Us</li>
+              <li>Contact Us</li>
+              <li>Privacy policy</li>
+              <li>Return & Refunds</li>
+            </ul>
+          </div>
+        </div>
+        <hr>
+        <p>© 2025 CLOUDLINETECH.LK – ALL RIGHTS RESERVED</p>
+      </div>
+    </div>
+
+    <!-------js for toggle menu------->
+    <script>
+      var MenuItems = document.getElementById(MenuItems);
+
+      MenuItems.style.maxHeight == "0px";
+
+      function menutoggle(){
+        if(MenuItems.style.maxHeight = "0px"){
+          MenuItems.style.maxHeight = "200px";
+        }
+        else
+        {
+          MenuItems.style.maxHeight = "0px";
+        }
+      }
+    </script>
+</body>
+</html>

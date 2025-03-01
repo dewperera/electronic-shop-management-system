@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account - Cloudline Technologies</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+  
+  <div class="container">
+    <div class="navbar">
+      <div class="logo">
+        <img src="Image/Logo-PNG.png" width="165px" height="70px">
+      </div>
+      <nav>
+        <ul id="MenuItems">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="products.html">Products</a></li>
+          <li><a href="">About</a></li>
+          <li><a href="">Contact</a></li>
+          <li><a href="account.html">Account</a></li>
+        </ul>
+      </nav>
+      <img src="Image/icons8-cart-50.png" width="30px" height="30px">
+      <img src="Image/icon-menu-50.png" class="menu-icon" onclick="menutoggle()">
+    </div>
+  </div>
+
+  <!----------account-page-------->
+  <div class="account-page">
+    <div class="container">
+        <div class="row">
+            <div class="col-2">
+                <img src="Image/199-1994141_msi-gaming-series-hd-png-download.png" width="100%">
+            </div>
+            <div class="col-2">
+                <div class="form-container">
+                    <div class="form-btn">
+                        <span onclick="login()">Login</span>
+                        <span onclick="register()">Register</span>
+                        <hr id="Indicator">
+                    </div> 
+
+                    <form id="LoginForm">
+                        <input type="text" id="loginUsername" placeholder="Username" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <button type="button" class="btn" onclick="handleLogin()">Login</button>
+                        <a href="">Forgot password</a>
+                    </form>
+
+                    <form id="RegForm">
+                        <input type="text" id="regUsername" placeholder="Username" required>
+                        <input type="email" id="regEmail" placeholder="Email" required>
+                        <input type="password" id="regPassword" placeholder="Password" required>
+                        <button type="button" class="btn" onclick="handleRegister()">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!--------footer----------->
+  <div class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="footer-col-1">
+          <img src="Image/Logo-PNG.png">
+          <p>Welcome to Cloudline Technologies (Pvt) Ltd., your trusted partner for cutting-edge IT product solutions. 
+            Established with a vision to provide the best-in-class technology products and services</p>
+        </div>
+        <div class="footer-col-2">
+          <h3>Useful Link</h3>
+          <ul>
+            <li>About Us</li>
+            <li>Contact Us</li>
+            <li>Privacy policy</li>
+            <li>Return & Refunds</li>
+          </ul>
+        </div>
+      </div>
+      <hr>
+      <p>© 2025 CLOUDLINETECH.LK – ALL RIGHTS RESERVED</p>
+    </div>
+  </div>
+
+  <script>
+    // Toggle between Login and Register forms
+    var LoginForm = document.getElementById("LoginForm");
+    var RegForm = document.getElementById("RegForm");
+    var Indicator = document.getElementById("Indicator");
+
+    function register() {
+      RegForm.style.transform = "translateX(0px)";
+      LoginForm.style.transform = "translateX(0px)";
+      Indicator.style.transform = "translateX(100px)";
+    }
+
+    function login() {
+      RegForm.style.transform = "translateX(300px)";
+      LoginForm.style.transform = "translateX(300px)";
+      Indicator.style.transform = "translateX(0px)";
+    }
+
+    // Handle Login
+    async function handleLogin() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      if (!username || !password) {
+        alert('Username and password are required');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert(data.message); // Login successful
+          // Redirect to another page or update UI
+          window.location.href = 'index.html'; // Example: Redirect to home page
+        } else {
+          alert(data.message); // Show error message
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    }
+
+    // Handle Registration
+    async function handleRegister() {
+      const username = document.getElementById('regUsername').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+
+      if (!username || !email || !password) {
+        alert('All fields are required');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert(data.message); // Registration successful
+          // Automatically switch to login form
+          login();
+        } else {
+          alert(data.message); // Show error message
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Products - Cloudline Technologies</title>
+   <link rel="stylesheet" href="styles.css">
+   <link href="https://fonts.googleapis.com/css2?
+   family=poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-
+    awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+
+
+  <div class="container">
+    <div class="navbar">
+      <div class="logo">
+        <img src="Image/Logo-PNG.png" width="165px" height="70px">
+      </div>
+      <nav>
+        <ul id="MenuItems">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="products.html">Products</a></li>
+          <li><a href="">About</a></li>
+          <li><a href="">Contact</a></li>
+          <li><a href="account.html">Account</a></li>
+      </ul>
+      </nav>
+      <img src="Image/icons8-cart-50.png" width="30px" height="30px">
+      <img src="Image/icon-menu-50.png" class="menu-icon" 
+      onclick="menutoggle()">
+    </div>
+  </div>
+
+  <!--------cart items details--------->
+  <div class="Small-container cart-page">
+
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+        </tr>
+
+    </table>
+
+    <div class="total-price">
+      <table>
+          <tr>
+              <td>Subtotal</td>
+              <td id="subtotal">Rs.0</td>
+          </tr>
+          <tr>
+              <td>Tax</td>
+              <td id="tax">Rs.0</td>
+          </tr>
+          <tr>
+              <td>Total</td>
+              <td id="total">Rs.0</td>
+          </tr>
+      </table>
+  </div>
+</div>
+
+<script>
+   const userId = 1; // Replace with the logged-in user's ID
+
+// Fetch cart items for the logged-in user
+fetch(`/cart/${userId}`)
+      .then(response => response.json())
+      .then(cartItems => {
+          const cartTable = document.getElementById('cart-table');
+          let subtotal = 0;
+
+          cartItems.forEach(item => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                  <td>
+                      <div class="cart-info">
+                          <img src="Image/${item.product_name.toLowerCase().replace(/ /g, '-')}.jpg">
+                          <div>
+                              <p>${item.product_name}</p>
+                              <small>Price: Rs.${item.price}</small>
+                              <br>
+                              <a href="">Remove</a>
+                          </div>
+                      </div>
+                  </td>
+                  <td><input type="number" value="${item.quantity}"></td>
+                  <td>Rs.${item.subtotal}</td>
+              `;
+              cartTable.appendChild(row);
+
+              subtotal += item.subtotal;
+          });
+
+          // Calculate and display totals
+          const tax = subtotal * 0.05; // 5% tax
+          const total = subtotal + tax;
+
+          document.getElementById('subtotal').textContent = `Rs.${subtotal}`;
+          document.getElementById('tax').textContent = `Rs.${tax}`;
+          document.getElementById('total').textContent = `Rs.${total}`;
+      })
+      .catch(error => console.error('Error fetching cart items:', error));
+</script>
+
+
+<!--------footer----------->
+    <div class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="footer-col-1">
+            <img src="Image/Logo-PNG.png">
+            <p>Welcome to Cloudline Technologies (Pvt) Ltd., your trusted partner for cutting-edge IT product solutions. 
+              Established with a vision to provide the best-in-class technology products and services</p>
+          </div>
+          <div class="footer-col-2">
+            <h3>Useful Link</h3>
+            <ul>
+              <li>About Us</li>
+              <li>Contact Us</li>
+              <li>Privacy policy</li>
+              <li>Return & Refunds</li>
+            </ul>
+          </div>
+        </div>
+        <hr>
+        <p>© 2025 CLOUDLINETECH.LK – ALL RIGHTS RESERVED</p>
+      </div>
+    </div>
+
+
+</body>
+</html>
