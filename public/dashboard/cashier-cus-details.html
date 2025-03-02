@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashier Customer Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        input, select, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cashier Customer Management</h1>
+
+    <!-- Add Customer Form -->
+    <h2>Add Customer</h2>
+    <form id="add-customer-form">
+        <input type="text" id="cus-name" placeholder="Name" required>
+        <input type="email" id="cus-email" placeholder="Email">
+        <input type="password" id="cus-password" placeholder="Password">
+        <input type="text" id="cus-tel" placeholder="Phone" required>
+        <select id="cus-type" required>
+            <option value="Online">Online</option>
+            <option value="Physical">Physical</option>
+        </select>
+        <button type="submit">Add Customer</button>
+    </form>
+
+    <!-- Customer Table -->
+    <h2>Customer List</h2>
+    <table id="customer-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Registration Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Customer rows will be added here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        const backendUrl = '/api/customers';
+
+        // Show/hide email and password fields based on customer type
+        const customerTypeSelect = document.getElementById('cus-type');
+        const emailField = document.getElementById('cus-email');
+        const passwordField = document.getElementById('cus-password');
+
+        customerTypeSelect.addEventListener('change', () => {
+            if (customerTypeSelect.value === 'Online') {
+                emailField.required = true;
+                passwordField.required = true;
+                emailField.classList.remove('hidden');
+                passwordField.classList.remove('hidden');
+            } else {
+                emailField.required = false;
+                passwordField.required = false;
+                emailField.classList.add('hidden');
+                passwordField.classList.add('hidden');
+            }
+        });
+
+        // Fetch Customers
+        async function fetchCustomers() {
+            try {
+                const response = await fetch(backendUrl);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch customers');
+                }
+                const customers = await response.json();
+                updateCustomerTable(customers);
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load customers');
+            }
+        }
+
+        // Update Customer Table
+        function updateCustomerTable(customers) {
+            const tableBody = document.querySelector('#customer-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            customers.forEach(customer => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${customer.cus_id}</td>
+                    <td>${customer.cus_name}</td>
+                    <td>${customer.cus_email || '-'}</td>
+                    <td>${customer.cus_tel}</td>
+                    <td>${customer.cus_type}</td>
+                    <td>${new Date(customer.cus_reg_date).toLocaleString()}</td>
+                   
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+// Add Customer
+document.getElementById('add-customer-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const cus_name = document.getElementById('cus-name').value;
+    const cus_email = document.getElementById('cus-email').value;
+    const password = document.getElementById('cus-password').value;
+    const cus_tel = document.getElementById('cus-tel').value;
+    const cus_type = document.getElementById('cus-type').value;
+
+    // For physical customers, set email and password to null
+    const newCustomer = {
+        cus_name,
+        cus_email: cus_type === 'Physical' ? null : cus_email,
+        password: cus_type === 'Physical' ? null : password,
+        cus_tel,
+        cus_type
+    };
+
+    try {
+        const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCustomer),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to add customer');
+        }
+        alert('Customer added successfully');
+        document.getElementById('add-customer-form').reset(); // Clear the form
+        fetchCustomers(); // Refresh the table
+    } catch (error) {
+        console.error(error);
+        alert('Failed to add customer');
+    }
+});
+
+        // Fetch customers when the page loads
+        fetchCustomers();
+    </script>
+</body>
+</html>

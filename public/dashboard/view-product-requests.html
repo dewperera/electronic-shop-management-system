@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Manager - Cloudline Technologies</title>
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+        h1 {
+            color: #4CAF50;
+            margin-top: 0;
+            border-bottom: 2px solid #f1f1f1;
+            padding-bottom: 10px;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .table-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        table th, table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 500;
+        }
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .status-pending {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .error-message {
+            color: #F44336;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Product Requests</h1>
+        
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" data-tab="damaged">Damaged/Outdated Products</div>
+                <div class="tab" data-tab="restock">Restock Requests</div>
+            </div>
+            
+            <!-- Damaged/Outdated Products Tab -->
+            <div id="damaged" class="tab-content active">
+                <div class="table-container">
+                    <h2>Recorded Issues</h2>
+                    <div id="damageListMessage"></div>
+                    
+                    <table id="damageReportsTable">
+                        <thead>
+                            <tr>
+                                <th>Date Reported</th>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Issue Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Damage reports will be inserted here by JavaScript -->
+                            <tr>
+                                <td colspan="8" class="loading">Loading reports...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Restock Requests Tab -->
+            <div id="restock" class="tab-content">
+                <div class="table-container">
+                    <h2>Restock Requests</h2>
+                    <div id="restockListMessage"></div>
+                    
+                    <table id="restockRequestsTable">
+                        <thead>
+                            <tr>
+                                <th>Date Requested</th>
+                                <th>Product ID</th>
+                                <th>Product Name</th>
+                                <th>Current Qty</th>
+                                <th>Requested Qty</th>
+                                <th>Priority</th>
+                                <!-- <th>Status</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Restock requests will be inserted here by JavaScript -->
+                            <tr>
+                                <td colspan="8" class="loading">Loading requests...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper functions
+        function showMessage(elementId, message, isError = false) {
+            const messageElement = document.getElementById(elementId);
+            messageElement.textContent = message;
+            messageElement.className = isError ? 'error-message' : 'success-message';
+            setTimeout(() => {
+                messageElement.textContent = '';
+                messageElement.className = '';
+            }, 5000);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString || Date.now());
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Tab navigation
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                const tabId = tab.getAttribute('data-tab');
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                if (tabId === 'damaged') {
+                    fetchDamageReports();
+                } else if (tabId === 'restock') {
+                    fetchRestockRequests();
+                }
+            });
+        });
+
+        // Fetch Damage Reports
+        async function fetchDamageReports() {
+            try {
+                const tableBody = document.querySelector('#damageReportsTable tbody');
+                tableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading damage reports...</td></tr>';
+                
+                const response = await fetch('/api/damage-reports');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch damage reports');
+                }
+                
+                const reports = await response.json();
+                
+                if (reports.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="loading">No damage reports found</td></tr>';
+                    return;
+                }
+                
+                displayDamageReports(reports);
+            } catch (error) {
+                console.error('Error fetching damage reports:', error);
+                const tableBody = document.querySelector('#damageReportsTable tbody');
+                tableBody.innerHTML = `<tr><td colspan="8" class="error-message">Failed to load reports: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Display Damage Reports
+        function displayDamageReports(reports) {
+            const tableBody = document.querySelector('#damageReportsTable tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            reports.forEach(report => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDate(report.reportDate)}</td>
+                        <td>${report.product_id}</td>
+                        <td>${report.product_name}</td>
+                        <td>${report.quantity}</td>
+                        <td>${report.issue_type}</td>
+                        <td>${report.description}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Fetch Restock Requests
+        async function fetchRestockRequests() {
+            try {
+                const tableBody = document.querySelector('#restockRequestsTable tbody');
+                tableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading restock requests...</td></tr>';
+                
+                const response = await fetch('/api/restock-requests');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch restock requests');
+                }
+                
+                const requests = await response.json();
+                
+                if (requests.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="loading">No restock requests found</td></tr>';
+                    return;
+                }
+                
+                displayRestockRequests(requests);
+            } catch (error) {
+                console.error('Error fetching restock requests:', error);
+                const tableBody = document.querySelector('#restockRequestsTable tbody');
+                tableBody.innerHTML = `<tr><td colspan="8" class="error-message">Failed to load requests: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Display Restock Requests
+        function displayRestockRequests(requests) {
+            const tableBody = document.querySelector('#restockRequestsTable tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            requests.forEach(request => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                     <td>${formatDate(request.requestDate)}</td>
+                        <td>${request.product_id}</td>
+                        <td>${request.product_name}</td>
+                        <td>${request.current_quantity}</td>
+                        <td>${request.requested_quantity}</td>
+                        <td>${request.priority}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDamageReports(); // Load damage reports by default
+        });
+    </script>
+</body>
+</html>

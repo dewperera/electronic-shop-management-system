@@ -3,176 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Showroom Manager - Product Management</title>
+    <title>Showroom Manager - Cloudline Technologies</title>
     <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #fff;
+            padding: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .logo img {
+            height: 60px;
+        }
+        .container {
+            width: 50%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+        h1 {
+            color: #4CAF50;
+            margin-top: 0;
+            border-bottom: 2px solid #f1f1f1;
+            padding-bottom: 10px;
+        }
+        .form-container {
+            display: grid;
+            grid-template-columns: 0.5fr 1fr;
+            gap: 20px;
+        }
+        form {
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .product-list {
+            margin-top: 30px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        table, th, td {
+        table th, table td {
+            padding: 12px 15px;
             border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 10px;
             text-align: left;
         }
-        th {
-            background-color: #f4f4f4;
+        table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 500;
         }
-        input, button, select {
-            margin: 5px;
-            padding: 8px;
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .status-in-stock {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .status-out-of-stock {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+     
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .error-message {
+            color: #F44336;
+            margin-bottom: 10px;
+        }
+        .success-message {
+            color: #4CAF50;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h1>Showroom Manager - Product Management</h1>
+        <h1>Showroom Manager View Products</h1>
+        
+        <div class="form-container">
+            <!-- Search & Update Section -->
+            <div>
+                <!-- Search Product Form -->
+                <form id="searchProductForm">
+                    <h2>Search Products</h2>
+                    <div id="searchProductMessage"></div>
+                    
+                    <label for="searchTerm">Search Term</label>
+                    <input type="text" id="searchTerm" placeholder="Enter name or description" required>
+                    
+                    <input type="submit" value="Search">
+                </form>
 
-        <!-- Product Details -->
-        <h2>Product Details</h2>
-        <table id="products-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Product data will be inserted here dynamically -->
-            </tbody>
-        </table>
-
-        <!-- Product Records -->
-        <h2>Product Records (Damaged/Outdated)</h2>
-        <table id="product-records-table">
-            <thead>
-                <tr>
-                    <th>Record ID</th>
-                    <th>Product ID</th>
-                    <th>Type</th>
-                    <th>Quantity</th>
-                    <th>Record Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Product records data will be inserted here dynamically -->
-            </tbody>
-        </table>
-
-        <!-- Add Product Record Form -->
-        <h2>Add Product Record</h2>
-        <form id="add-product-record-form">
-            <input type="number" id="product_id" placeholder="Product ID" required>
-            <select id="record_type" required>
-                <option value="Damaged">Damaged</option>
-                <option value="Outdated">Outdated</option>
-            </select>
-            <input type="number" id="quantity" placeholder="Quantity" required>
-            <input type="date" id="record_date" placeholder="Record Date" required>
-            <button type="submit">Add Record</button>
-        </form>
+            
+        <!-- Product List -->
+        <div class="product-list">
+            <h2>Product Inventory</h2>
+            <div id="productListMessage"></div>
+            
+            <table id="productTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Price (Rs.)</th>
+                        <th>Image</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                    
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Product rows will be inserted here by JavaScript -->
+                    <tr>
+                        <td colspan="8" class="loading">Loading products...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // Fetch and display products and product records when the page loads
-        fetchProducts();
-        fetchProductRecords();
+        const backendUrl = '/api/products';
+        
+        // Show message function
+        function showMessage(elementId, message, isError = false) {
+            const messageElement = document.getElementById(elementId);
+            messageElement.textContent = message;
+            messageElement.className = isError ? 'error-message' : 'success-message';
+            
+            // Clear message after 5 seconds
+            setTimeout(() => {
+                messageElement.textContent = '';
+                messageElement.className = '';
+            }, 5000);
+        }
 
-        // Fetch products data from the backend
+        // Format price as currency
+        function formatPrice(price) {
+            return 'Rs. ' + parseFloat(price).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+    
+        
+        // Fetch and display all products
         async function fetchProducts() {
             try {
-                const response = await fetch('http://localhost:3306/products');
+                const tableBody = document.querySelector('#productTable tbody');
+                tableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading products...</td></tr>';
+                
+                const response = await fetch(backendUrl);
                 if (!response.ok) {
                     throw new Error('Failed to fetch products');
                 }
+                
                 const products = await response.json();
+                
+                if (products.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="loading">No products found</td></tr>';
+                    return;
+                }
+                
                 displayProducts(products);
             } catch (error) {
-                console.error(error);
-                alert('Failed to load products');
+                console.error('Error fetching products:', error);
+                const tableBody = document.querySelector('#productTable tbody');
+                tableBody.innerHTML = `<tr><td colspan="8" class="error-message">Failed to load products: ${error.message}</td></tr>`;
             }
         }
 
-        // Fetch product records data from the backend
-        async function fetchProductRecords() {
-            try {
-                const response = await fetch('http://localhost:3306/product-records');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch product records');
-                }
-                const productRecords = await response.json();
-                displayProductRecords(productRecords);
-            } catch (error) {
-                console.error(error);
-                alert('Failed to load product records');
-            }
-        }
-
-        // Display products data in the table
+        // Display products in the table
         function displayProducts(products) {
-            const tableBody = document.querySelector('#products-table tbody');
+            const tableBody = document.querySelector('#productTable tbody');
             tableBody.innerHTML = ''; // Clear existing rows
 
             products.forEach(product => {
                 const row = document.createElement('tr');
+                
+                // Create image element with placeholder if no image URL
+                const imageCell = document.createElement('td');
+                if (product.image_url) {
+                    const img = document.createElement('img');
+                    img.src = product.image_url;
+                    img.alt = product.product_name;
+                    img.style.width = '50px';
+                    img.style.height = '50px';
+                    img.style.objectFit = 'cover';
+                    imageCell.appendChild(img);
+                } else {
+                    imageCell.textContent = 'No image';
+                }
+                
+                // Create status element with appropriate class
+                const statusCell = document.createElement('td');
+                const statusSpan = document.createElement('span');
+                statusSpan.textContent = product.product_quantity > 0 ? 'In Stock' : 'Out of Stock';
+                statusSpan.className = product.product_quantity > 0 ? 'status-in-stock' : 'status-out-of-stock';
+                statusCell.appendChild(statusSpan);
+                
+                
+                
+                // Build the row
                 row.innerHTML = `
                     <td>${product.product_id}</td>
                     <td>${product.product_name}</td>
-                    <td>${product.quantity}</td>
-                    <td>${product.price}</td>
+                    <td>${product.product_description.substring(0, 50)}${product.product_description.length > 50 ? '...' : ''}</td>
+                    <td>${formatPrice(product.product_price)}</td>
                 `;
+                
+                row.appendChild(imageCell);
+                row.appendChild(document.createElement('td')).textContent = product.product_quantity;
+                row.appendChild(statusCell);
+                
+                
                 tableBody.appendChild(row);
             });
         }
 
-        // Display product records data in the table
-        function displayProductRecords(productRecords) {
-            const tableBody = document.querySelector('#product-records-table tbody');
-            tableBody.innerHTML = ''; // Clear existing rows
+    
 
-            productRecords.forEach(record => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${record.record_id}</td>
-                    <td>${record.product_id}</td>
-                    <td>${record.record_type}</td>
-                    <td>${record.quantity}</td>
-                    <td>${record.record_date}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Add a product record
-        document.getElementById('add-product-record-form').addEventListener('submit', async (e) => {
+        // Search Product
+        document.getElementById('searchProductForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const newRecord = {
-                product_id: document.getElementById('product_id').value,
-                record_type: document.getElementById('record_type').value,
-                quantity: document.getElementById('quantity').value,
-                record_date: document.getElementById('record_date').value,
-            };
+            const term = document.getElementById('searchTerm').value;
 
             try {
-                const response = await fetch('http://localhost:3306/product-records', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newRecord),
-                });
+                const tableBody = document.querySelector('#productTable tbody');
+                tableBody.innerHTML = '<tr><td colspan="8" class="loading">Searching products...</td></tr>';
+                
+                const response = await fetch(`${backendUrl}/search?term=${encodeURIComponent(term)}`);
+                
                 if (!response.ok) {
-                    throw new Error('Failed to add product record');
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to search products');
                 }
-                alert('Product record added successfully');
-                fetchProductRecords(); // Refresh the table
+                
+                const products = await response.json();
+                
+                if (products.length === 0) {
+                    showMessage('searchProductMessage', 'No products found matching your search');
+                    tableBody.innerHTML = '<tr><td colspan="8" class="loading">No products found matching your search</td></tr>';
+                } else {
+                    showMessage('searchProductMessage', `Found ${products.length} product(s)`);
+                    displayProducts(products);
+                }
             } catch (error) {
-                console.error(error);
-                alert('Failed to add product record');
+                console.error('Error searching products:', error);
+                showMessage('searchProductMessage', `Failed to search products: ${error.message}`, true);
             }
         });
+
+
+        // Fetch products when the page loads
+        document.addEventListener('DOMContentLoaded', fetchProducts);
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Showroom Manager - Customer Details</title>
+    <title>Customer Management</title>
     <style>
         table {
             width: 100%;
@@ -20,6 +20,9 @@
         th {
             background-color: #f4f4f4;
         }
+        form {
+            margin-bottom: 20px;
+        }
         input, button {
             margin: 5px;
             padding: 8px;
@@ -27,43 +30,60 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Showroom Manager - Customer Details</h1>
+    <h1>Customer Management</h1>
 
-        <!-- Search Customers -->
-        <h2>Search Customers</h2>
-        <input type="text" id="search-query" placeholder="Search by name, email, or phone number">
-        <button id="search-btn">Search</button>
+    <!-- Update Customer Form -->
+    <h2>Update Physical Customer</h2>
+    <form id="update-customer-form">
+        <input type="number" id="update-cus_id" placeholder="Customer ID" required>
+        <input type="text" id="update-cus_name" placeholder="Name" required>
+        <input type="text" id="update-cus_tel" placeholder="Phone" required>
+        <button type="submit">Update Customer</button>
+    </form>
 
-        <!-- Customers Table -->
-        <h2>Customer Details</h2>
-        <table id="customers-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Phone Number</th>
-                    <th>Address</th>
-                    <th>Registered Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Customer data will be inserted here dynamically -->
-            </tbody>
-        </table>
-    </div>
+    <!-- Delete Customer Form -->
+    <h2>Delete Physical Customer</h2>
+    <form id="delete-customer-form">
+        <input type="number" id="delete-cus_id" placeholder="Customer ID" required>
+        <button type="submit">Delete Customer</button>
+    </form>
+
+    <!-- Search Customer Form -->
+    <h2>Search Customer by Phone</h2>
+    <form id="search-customer-form">
+        <input type="text" id="search-cus_tel" placeholder="Phone Number" required>
+        <button type="submit">Search Customer</button>
+    </form>
+
+    <!-- Customer Table -->
+    <h2>Customer Details</h2>
+    <table id="customer-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Registration Date</th>
+                <!-- <th>Action</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Customer data will be inserted here dynamically -->
+        </tbody>
+    </table>
 
     <script>
+        const backendUrl = '/api/customers';
+
         // Fetch and display customers when the page loads
         fetchCustomers();
 
-        // Fetch customers data from the backend
+        // Fetch customer data from the backend
         async function fetchCustomers() {
             try {
-                const response = await fetch('http://localhost:3306/customers');
+                const response = await fetch(backendUrl);
                 if (!response.ok) {
                     throw new Error('Failed to fetch customers');
                 }
@@ -71,62 +91,40 @@
                 displayCustomers(customers);
             } catch (error) {
                 console.error(error);
-                alert('Failed to load customers');
+                alert('Failed to load customer data');
             }
         }
 
-        // Search customers
-        document.getElementById('search-btn').addEventListener('click', async () => {
-            const query = document.getElementById('search-query').value;
-            try {
-                const response = await fetch(http://localhost:3306/customers/search?query=${query});
-                if (!response.ok) {
-                    throw new Error('Failed to search customers');
-                }
-                const customers = await response.json();
-                displayCustomers(customers);
-            } catch (error) {
-                console.error(error);
-                alert('Failed to search customers');
-            }
-        });
-
-        // Display customers data in the table
+        // Display customer data in the table
         function displayCustomers(customers) {
-            const tableBody = document.querySelector('#customers-table tbody');
+            const tableBody = document.querySelector('#customer-table tbody');
             tableBody.innerHTML = ''; // Clear existing rows
 
             customers.forEach(customer => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${customer.customer_id}</td>
-                    <td>${customer.first_name}</td>
-                    <td>${customer.last_name}</td>
-                    <td>${customer.email}</td>
-                    <td>${customer.phone_number}</td>
-                    <td>${customer.address}</td>
-                    <td>${customer.registered_date}</td>
-                    <td>
-                        <button onclick="editCustomer(${customer.customer_id})">Edit</button>
-                        <button onclick="deleteCustomer(${customer.customer_id})">Delete</button>
-                    </td>
+                    <td>${customer.cus_id}</td>
+                    <td>${customer.cus_name}</td>
+                    <td>${customer.cus_email || '-'}</td>
+                    <td>${customer.cus_tel}</td>
+                    <td>${customer.cus_type}</td>
+                    <td>${new Date(customer.cus_reg_date).toLocaleString()}</td>
                 `;
                 tableBody.appendChild(row);
             });
         }
 
-        // Edit a customer
-        async function editCustomer(customer_id) {
+        // Update Physical Customer
+        document.getElementById('update-customer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cus_id = document.getElementById('update-cus_id').value;
             const updatedCustomer = {
-                first_name: prompt('Enter new first name:'),
-                last_name: prompt('Enter new last name:'),
-                email: prompt('Enter new email:'),
-                phone_number: prompt('Enter new phone number:'),
-                address: prompt('Enter new address:'),
+                cus_name: document.getElementById('update-cus_name').value,
+                cus_tel: document.getElementById('update-cus_tel').value,
             };
 
             try {
-                const response = await fetch(http://localhost:3306/customers/${customer_id}, {
+                const response = await fetch(`${backendUrl}/update-physical/${cus_id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updatedCustomer),
@@ -140,26 +138,46 @@
                 console.error(error);
                 alert('Failed to update customer');
             }
-        }
+        });
 
-        // Delete a customer
-        async function deleteCustomer(customer_id) {
-            if (confirm('Are you sure you want to delete this customer?')) {
-                try {
-                    const response = await fetch(http://localhost:3306/customers/${customer_id}, {
-                        method: 'DELETE',
-                    });
-                    if (!response.ok) {
-                        throw new Error('Failed to delete customer');
-                    }
-                    alert('Customer deleted successfully');
-                    fetchCustomers(); // Refresh the table
-                } catch (error) {
-                    console.error(error);
-                    alert('Failed to delete customer');
+        // Delete Physical Customer
+        document.getElementById('delete-customer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cus_id = document.getElementById('delete-cus_id').value;
+
+            try {
+                const response = await fetch(`${backendUrl}/delete-physical/${cus_id}`, {
+                    method: 'DELETE',
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to delete customer');
                 }
+                alert('Customer deleted successfully');
+                fetchCustomers(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                alert('Failed to delete customer');
             }
+        });
+
+      // Search Customer by Phone
+document.getElementById('search-customer-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const cus_tel = document.getElementById('search-cus_tel').value;
+
+    try {
+        // Use the correct endpoint and query parameter
+        const response = await fetch(`${backendUrl}/search?phone=${cus_tel}`);
+        if (!response.ok) {
+            throw new Error('Customer not found');
         }
+        const customers = await response.json();
+        displayCustomers(customers); // Display the search results
+    } catch (error) {
+        console.error(error);
+        alert('Customer not found');
+    }
+});
     </script>
 </body>
 </html>
