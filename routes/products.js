@@ -99,13 +99,36 @@ router.delete('/:id', (req, res) => {
 // 5. Fetch All Products
 // --------------------------
 router.get('/', (req, res) => {
-    const query = 'SELECT * FROM Products';
-    dbConnection().query(query, (err, result) => {
-        if (err) {
-            console.error('Error fetching products:', err);
-            return res.status(500).json({ message: 'Error fetching products', error: err.message });
-        }
-        res.status(200).json(result);
+    const query = 'SELECT * FROM Products ORDER BY product_name';
+    
+    dbConnection().query(query, (err, results) => {
+      if (err) {
+        console.error('Error fetching products:', err);
+        return res.status(500).send(err);
+      }
+      
+      res.json(results);
+    });
+});
+  
+// --------------------------
+// 6. Get Product by ID
+// --------------------------
+router.get('/:id', (req, res) => {
+    const productId = req.params.id;
+    const query = 'SELECT * FROM Products WHERE product_id = ?';
+    
+    dbConnection().query(query, [productId], (err, results) => {
+      if (err) {
+        console.error('Error fetching product:', err);
+        return res.status(500).send(err);
+      }
+      
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      res.json(results[0]);
     });
 });
 

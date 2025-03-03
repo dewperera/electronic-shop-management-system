@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmation - Cloudline Technologies</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .receipt-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .receipt-header h2 {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .receipt-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .receipt-info div {
+            flex: 1;
+        }
+        .receipt-items {
+            margin-bottom: 20px;
+        }
+        .receipt-items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .receipt-items th, .receipt-items td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .receipt-items th {
+            background-color: #f9f9f9;
+        }
+        .receipt-total {
+            text-align: right;
+        }
+        .receipt-total table {
+            width: 300px;
+            margin-left: auto;
+        }
+        .receipt-total td {
+            padding: 5px 10px;
+        }
+        .receipt-total tr:last-child {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .print-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .print-btn:hover {
+            background-color: #45a049;
+        }
+        @media print {
+            .navbar, .footer, .print-btn {
+                display: none;
+            }
+            .receipt-container {
+                box-shadow: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+  
+  <div class="container">
+    <div class="navbar">
+      <div class="logo">
+        <img src="Image/Logo-PNG.png" width="165px" height="70px">
+      </div>
+      <nav>
+        <ul id="MenuItems">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="products.html">Products</a></li>
+          <li><a href="">About</a></li>
+          <li><a href="">Contact</a></li>
+          <li><a href="account.html">Account</a></li>
+        </ul>
+      </nav>
+      <img src="Image/icons8-cart-50.png" width="30px" height="30px">
+      <img src="Image/icon-menu-50.png" class="menu-icon" onclick="menutoggle()">
+    </div>
+  </div>
+
+  <div class="small-container">
+    <div class="receipt-container" id="receipt">
+        <div class="receipt-header">
+            <img src="Image/Logo-PNG.png" width="165px" height="70px">
+            <h2>Order Confirmation</h2>
+            <p>Thank you for your purchase!</p>
+        </div>
+        
+        <div class="receipt-info">
+            <div class="customer-info">
+                <h3>Customer Details</h3>
+                <p id="customer-name"></p>
+                <p id="customer-address"></p>
+                <p id="customer-email"></p>
+                <p id="customer-phone"></p>
+            </div>
+            <div class="order-info">
+                <h3>Order Information</h3>
+                <p id="order-id"></p>
+                <p id="order-date"></p>
+            </div>
+        </div>
+        
+        <div class="receipt-items">
+            <h3>Order Items</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="receipt-items-table">
+                    <!-- Items will be added dynamically -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="receipt-total">
+            <table>
+                <tr>
+                    <td>Subtotal:</td>
+                    <td id="receipt-subtotal"></td>
+                </tr>
+                <tr>
+                    <td>Tax (5%):</td>
+                    <td id="receipt-tax"></td>
+                </tr>
+                <tr>
+                    <td>Total:</td>
+                    <td id="receipt-total"></td>
+                </tr>
+            </table>
+        </div>
+        
+        <button class="print-btn" onclick="window.print()">Print Receipt</button>
+    </div>
+  </div>
+
+  <script>
+    // Get receipt data from URL parameters or localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+        // Try to get receipt data from localStorage (set during checkout)
+        const receiptData = JSON.parse(localStorage.getItem('receiptData'));
+        
+        if (receiptData) {
+            displayReceipt(receiptData);
+        } else {
+            // If not in localStorage, try to get from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId');
+            
+            if (orderId) {
+                // Fetch order details from server
+                fetch(`/api/checkout/${orderId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displayReceipt(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching order details:', error);
+                        document.querySelector('.receipt-container').innerHTML = '<p>Error loading order details. Please try again later.</p>';
+                    });
+            } else {
+                document.querySelector('.receipt-container').innerHTML = '<p>No order information found.</p>';
+            }
+        }
+    });
+
+    function displayReceipt(data) {
+        // Fill customer info
+        document.getElementById('customer-name').textContent = `Name: ${data.customerName}`;
+        document.getElementById('customer-address').textContent = `Address: ${data.address}`;
+        document.getElementById('customer-email').textContent = `Email: ${data.email}`;
+        document.getElementById('customer-phone').textContent = `Phone: ${data.phone}`;
+        
+        // Fill order info
+        document.getElementById('order-id').textContent = `Order ID: ${data.orderId}`;
+        document.getElementById('order-date').textContent = `Date: ${data.orderDate}`;
+        
+        // Fill items table
+        const itemsTable = document.getElementById('receipt-items-table');
+        itemsTable.innerHTML = '';
+        
+        data.items.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.name}</td>
+                <td>Rs.${item.price}</td>
+                <td>${item.quantity}</td>
+                <td>Rs.${item.price * item.quantity}</td>
+            `;
+            itemsTable.appendChild(row);
+        });
+        
+        // Fill totals
+        document.getElementById('receipt-subtotal').textContent = `Rs.${data.subtotal.toFixed(2)}`;
+        document.getElementById('receipt-tax').textContent = `Rs.${data.tax.toFixed(2)}`;
+        document.getElementById('receipt-total').textContent = `Rs.${data.total.toFixed(2)}`;
+        
+        // Clear receipt data from localStorage after displaying
+        localStorage.removeItem('receiptData');
+    }
+  </script>
+
+  <!--------footer----------->
+  <div class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="footer-col-1">
+          <img src="Image/Logo-PNG.png">
+          <p>Welcome to Cloudline Technologies (Pvt) Ltd., your trusted partner for cutting-edge IT product solutions. 
+            Established with a vision to provide the best-in-class technology products and services</p>
+        </div>
+        <div class="footer-col-2">
+          <h3>Useful Link</h3>
+          <ul>
+            <li>About Us</li>
+            <li>Contact Us</li>
+            <li>Privacy policy</li>
+            <li>Return & Refunds</li>
+          </ul>
+        </div>
+      </div>
+      <hr>
+      <p>© 2025 CLOUDLINETECH.LK – ALL RIGHTS RESERVED</p>
+    </div>
+  </div>
+
+</body>
+</html>

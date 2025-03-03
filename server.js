@@ -1,6 +1,8 @@
 const express = require('express');
 require('dotenv').config(); // Load environment variables
 const cors = require("cors");
+const path = require('path');
+
 const employeesRouter = require('./routes/employees');
 const transactionsRouter = require('./routes/transactions');
 const supplierRouter = require('./routes/supplier');
@@ -12,11 +14,15 @@ const customersRouter = require('./routes/customers');
 const productsRouter = require('./routes/products');
 const damageReportsRouter = require('./routes/damageReports');
 const restockRequestsRouter = require('./routes/restockRequests');
+const checkoutRouter = require('./routes/checkout'); 
+const orderRoutes = require('./routes/order');
+const billingRouter = require('./routes/billing');
 
 
 const app = express();
 
 app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(cors());
 
@@ -33,6 +39,9 @@ app.use("/api/customers",customersRouter)
 app.use('/api/products', productsRouter);
 app.use('/api/damage-reports', damageReportsRouter);
 app.use('/api/restock-requests', restockRequestsRouter);
+app.use('/api/checkout', checkoutRouter);
+app.use('/', orderRoutes);
+app.use('/api/billing', billingRouter);
 
 
 // // Start the server

@@ -2,17 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>All Products - Cloudline Technologies</title>
-   <link rel="stylesheet" href="styles.css">
-   <link href="https://fonts.googleapis.com/css2?
-   family=poppins:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-
-    awesome/4.7.0/css/font-awesome.min.css">
+    <title>Cart - Cloudline Technologies</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-
-
+  
   <div class="container">
     <div class="navbar">
       <div class="logo">
@@ -25,18 +21,16 @@
           <li><a href="">About</a></li>
           <li><a href="">Contact</a></li>
           <li><a href="account.html">Account</a></li>
-      </ul>
+        </ul>
       </nav>
       <img src="Image/icons8-cart-50.png" width="30px" height="30px">
-      <img src="Image/icon-menu-50.png" class="menu-icon" 
-      onclick="menutoggle()">
+      <img src="Image/icon-menu-50.png" class="menu-icon" onclick="menutoggle()">
     </div>
   </div>
 
   <!--------cart items details--------->
-  <div class="Small-container cart-page">
-
-    <table>
+  <div class="small-container cart-page">
+    <table id="cart-table">
         <tr>
             <th>Product</th>
             <th>Quantity</th>
@@ -60,76 +54,153 @@
               <td id="total">Rs.0</td>
           </tr>
       </table>
-  </div>
-</div>
-
-<script>
-   const userId = 1; // Replace with the logged-in user's ID
-
-// Fetch cart items for the logged-in user
-fetch(`/cart/${userId}`)
-      .then(response => response.json())
-      .then(cartItems => {
-          const cartTable = document.getElementById('cart-table');
-          let subtotal = 0;
-
-          cartItems.forEach(item => {
-              const row = document.createElement('tr');
-              row.innerHTML = `
-                  <td>
-                      <div class="cart-info">
-                          <img src="Image/${item.product_name.toLowerCase().replace(/ /g, '-')}.jpg">
-                          <div>
-                              <p>${item.product_name}</p>
-                              <small>Price: Rs.${item.price}</small>
-                              <br>
-                              <a href="">Remove</a>
-                          </div>
-                      </div>
-                  </td>
-                  <td><input type="number" value="${item.quantity}"></td>
-                  <td>Rs.${item.subtotal}</td>
-              `;
-              cartTable.appendChild(row);
-
-              subtotal += item.subtotal;
-          });
-
-          // Calculate and display totals
-          const tax = subtotal * 0.05; // 5% tax
-          const total = subtotal + tax;
-
-          document.getElementById('subtotal').textContent = `Rs.${subtotal}`;
-          document.getElementById('tax').textContent = `Rs.${tax}`;
-          document.getElementById('total').textContent = `Rs.${total}`;
-      })
-      .catch(error => console.error('Error fetching cart items:', error));
-</script>
-
-
-<!--------footer----------->
-    <div class="footer">
-      <div class="container">
-        <div class="row">
-          <div class="footer-col-1">
-            <img src="Image/Logo-PNG.png">
-            <p>Welcome to Cloudline Technologies (Pvt) Ltd., your trusted partner for cutting-edge IT product solutions. 
-              Established with a vision to provide the best-in-class technology products and services</p>
-          </div>
-          <div class="footer-col-2">
-            <h3>Useful Link</h3>
-            <ul>
-              <li>About Us</li>
-              <li>Contact Us</li>
-              <li>Privacy policy</li>
-              <li>Return & Refunds</li>
-            </ul>
-          </div>
-        </div>
-        <hr>
-        <p>© 2025 CLOUDLINETECH.LK – ALL RIGHTS RESERVED</p>
-      </div>
     </div>
+
+    <div class="checkout-details">
+      <h3>Checkout Details</h3>
+      <form id="checkout-form">
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="address">Shipping Address:</label>
+        <input type="text" id="address" name="address" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <button type="submit" class="btn">Proceed to Checkout</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Retrieve cart items from localStorage
+    const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const cartTable = document.getElementById('cart-table');
+    let subtotal = 0;
+
+    // Render cart items
+    cartItems.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <div class="cart-info">
+                    <img src="${item.imageUrl}">
+                    <div>
+                        <p>${item.name}</p>
+                        <small>Price: Rs.${item.price}</small>
+                        <br>
+                        <a href="" onclick="removeFromCart(${item.id})">Remove</a>
+                    </div>
+                </div>
+            </td>
+            <td><input type="number" value="${item.quantity}" onchange="updateQuantity(${item.id}, this.value)"></td>
+            <td>Rs.${item.price * item.quantity}</td>
+        `;
+        cartTable.appendChild(row);
+
+        subtotal += item.price * item.quantity;
+    });
+
+    // Calculate and display totals
+    const tax = subtotal * 0.05; // 5% tax
+    const total = subtotal + tax;
+
+    document.getElementById('subtotal').textContent = `Rs.${subtotal}`;
+    document.getElementById('tax').textContent = `Rs.${tax}`;
+    document.getElementById('total').textContent = `Rs.${total}`;
+
+    // Function to remove item from cart
+    function removeFromCart(productId) {
+        const updatedCartItems = cartItems.filter(item => item.id !== productId);
+        localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+        location.reload(); // Refresh the page to update the cart
+    }
+
+    // Function to update item quantity
+    function updateQuantity(productId, quantity) {
+        const updatedCartItems = cartItems.map(item => {
+            if (item.id === productId) {
+                item.quantity = parseInt(quantity);
+            }
+            return item;
+        });
+        localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+        location.reload(); // Refresh the page to update the cart
+    }
+
+// Add event listener to the checkout form
+document.getElementById('checkout-form').addEventListener('submit', function(event) {
+  event.preventDefault(); // Prevent default form submission
+  
+  // Get form values
+  const checkoutDetails = {
+    name: document.getElementById('name').value,
+    address: document.getElementById('address').value,
+    email: document.getElementById('email').value,
+    phone: document.getElementById('phone').value,
+    total: total, // Use the total variable already calculated
+    items: cartItems // Array of cart items
+  };
+
+  console.log('Checkout Details:', checkoutDetails); // Debugging
+
+  fetch('/api/checkout', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(checkoutDetails)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Store receipt data in localStorage for the confirmation page
+      localStorage.setItem('receiptData', JSON.stringify(data.receiptData));
+      
+      // Clear cart after successful checkout
+      localStorage.removeItem('cartItems');
+      
+      // Redirect to confirmation page
+      window.location.href = 'confirmation.html';
+    } else {
+      alert('Checkout failed: ' + (data.error || 'Unknown error'));
+    }
+  })
+  .catch(error => {
+    console.error('Error during checkout:', error);
+    alert('Checkout failed. Please try again later.');
+  });
+});
+
+  </script>
+
+  <!--------footer----------->
+  <div class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="footer-col-1">
+          <img src="Image/Logo-PNG.png">
+          <p>Welcome to Cloudline Technologies (Pvt) Ltd., your trusted partner for cutting-edge IT product solutions. 
+            Established with a vision to provide the best-in-class technology products and services</p>
+        </div>
+        <div class="footer-col-2">
+          <h3>Useful Link</h3>
+          <ul>
+            <li>About Us</li>
+            <li>Contact Us</li>
+            <li>Privacy policy</li>
+            <li>Return & Refunds</li>
+          </ul>
+        </div>
+      </div>
+      <hr>
+      <p>© 2025 CLOUDLINETECH.LK – ALL RIGHTS RESERVED</p>
+    </div>
+  </div>
 
 
 </body>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashier Billing System</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a90e2;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #4a90e2;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        /* Form Styles */
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #4a90e2;
+            outline: none;
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+        }
+
+        button {
+            background: #4a90e2;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #357abd;
+            transform: translateY(-2px);
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #4a90e2;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        td {
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        /* Total Bill Styles */
+        #total-amount {
+            font-size: 1.5em;
+            color: #4a90e2;
+            font-weight: bold;
+        }
+
+        /* Receipt Styles */
+        #receipt {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        #receipt h2 {
+            color: #4a90e2;
+            margin-bottom: 15px;
+        }
+
+        #receipt-total-amount {
+            font-size: 1.5em;
+            color: #4a90e2;
+            font-weight: bold;
+        }
+
+        /* Button Styles */
+        #generate-receipt-btn {
+            background: #4a90e2;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        #generate-receipt-btn:hover {
+            background: #357abd;
+            transform: translateY(-2px);
+        }
+
+        /* Remove Button Styles */
+        button.remove-btn {
+            background: #ff4d4d;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button.remove-btn:hover {
+            background: #cc0000;
+            transform: translateY(-2px);
+        }
+        
+        /* Print Button Styles */
+        #print-receipt-btn {
+            background: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+        
+        #print-receipt-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        /* Notification */
+        .notification {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cashier Billing System</h1>
+    
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Add Product Form -->
+    <h2>Add Product</h2>
+    <form id="add-product-form">
+        <select id="product-select" required>
+            <option value="" disabled selected>Select a product</option>
+            <!-- Product options will be populated dynamically -->
+        </select>
+        <input type="number" id="product-quantity" placeholder="Quantity" min="1" required>
+        <input type="number" id="product-discount" placeholder="Discount (%)" min="0" max="100" value="0">
+        <button type="submit">Add Product</button>
+    </form>
+
+    <!-- Product Table -->
+    <h2>Product List</h2>
+    <table id="product-table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price per Unit</th>
+                <th>Discount (%)</th>
+                <th>Total</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Product rows will be added here dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Total Bill -->
+    <h2>Total Bill</h2>
+    <p>Total Amount: <span id="total-amount">0.00</span></p>
+
+    <!-- Generate Receipt -->
+    <button id="generate-receipt-btn">Generate Receipt</button>
+    <button id="print-receipt-btn" style="display: none;">Print Receipt</button>
+
+    <!-- Receipt Section -->
+    <div id="receipt">
+        <h2>Receipt</h2>
+        <p>Date: <span id="receipt-date"></span></p>
+        <table id="receipt-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price per Unit</th>
+                    <th>Discount (%)</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Receipt rows will be added here dynamically -->
+            </tbody>
+        </table>
+        <p>Total Amount: <span id="receipt-total-amount">0.00</span></p>
+    </div>
+
+    <script>
+        // Initialize variables
+        let allProducts = []; // To store fetched products
+        let products = []; // To store selected products
+        let totalAmount = 0; // Total bill amount
+
+        // Execute when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch products
+            fetchProducts();
+            
+            // Add event listeners
+            document.getElementById('add-product-form').addEventListener('submit', addProduct);
+            document.getElementById('generate-receipt-btn').addEventListener('click', handleGenerateReceipt);
+            document.getElementById('print-receipt-btn').addEventListener('click', printReceipt);
+        });
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.style.display = 'block';
+            
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Fetch Products from Backend
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/api/billing/products');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch products (${response.status}: ${response.statusText})`);
+                }
+                
+                const data = await response.json();
+                console.log("Products loaded:", data);
+                
+                allProducts = data;
+                populateProductDropdown();
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                showNotification('Error loading products. Please check the console for details.', 'error');
+            }
+        }
+
+        // Populate Product Dropdown
+        function populateProductDropdown() {
+            const productSelect = document.getElementById('product-select');
+            productSelect.innerHTML = '<option value="" disabled selected>Select a product</option>';
+            
+            if (allProducts && allProducts.length > 0) {
+                allProducts.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.product_id;
+                    option.textContent = `${product.product_name} - Rs.${parseFloat(product.product_price).toFixed(2)}`;
+                    productSelect.appendChild(option);
+                });
+                console.log(`Populated dropdown with ${allProducts.length} products`);
+            } else {
+                console.log("No products available to populate dropdown");
+                showNotification('No products found in the database.', 'error');
+            }
+        }
+
+        // Add Product to List
+        function addProduct(e) {
+            e.preventDefault();
+            
+            const productId = document.getElementById('product-select').value;
+            const quantity = parseInt(document.getElementById('product-quantity').value);
+            const discount = parseFloat(document.getElementById('product-discount').value || 0);
+
+            if (!productId || isNaN(quantity) || quantity <= 0) {
+                showNotification('Please select a product and enter a valid quantity.', 'error');
+                return;
+            }
+
+            const selectedProduct = allProducts.find(product => product.product_id == productId);
+            
+            if (!selectedProduct) {
+                showNotification('Selected product not found.', 'error');
+                return;
+            }
+            
+            if (quantity > selectedProduct.product_quantity) {
+                showNotification(`Only ${selectedProduct.product_quantity} items available in stock.`, 'error');
+                return;
+            }
+
+            const price = parseFloat(selectedProduct.product_price);
+            const discountAmount = price * (discount / 100);
+            const discountedPrice = price - discountAmount;
+            const total = quantity * discountedPrice;
+
+            // Create product object
+            const product = {
+                product_id: selectedProduct.product_id,
+                productName: selectedProduct.product_name,
+                quantity: quantity,
+                price: price,
+                discount: discount,
+                total: total
+            };
+
+            // Add to products array
+            products.push(product);
+
+            // Update UI
+            updateProductTable();
+            calculateTotalBill();
+            clearForm();
+            
+            showNotification('Product added successfully!', 'success');
+        }
+
+        // Update Product Table
+        function updateProductTable() {
+            const tableBody = document.querySelector('#product-table tbody');
+            tableBody.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.productName}</td>
+                    <td>${product.quantity}</td>
+                    <td>Rs. ${product.price.toFixed(2)}</td>
+                    <td>${product.discount.toFixed(2)}%</td>
+                    <td>Rs. ${product.total.toFixed(2)}</td>
+                    <td><button class="remove-btn" onclick="removeProduct(${index})">Remove</button></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Remove Product
+        function removeProduct(index) {
+            products.splice(index, 1);
+            updateProductTable();
+            calculateTotalBill();
+            showNotification('Product removed successfully!', 'success');
+        }
+
+        // Calculate Total Bill
+        function calculateTotalBill() {
+            totalAmount = products.reduce((sum, product) => sum + product.total, 0);
+            document.getElementById('total-amount').textContent = `Rs. ${totalAmount.toFixed(2)}`;
+        }
+
+        // Clear Form
+        function clearForm() {
+            document.getElementById('add-product-form').reset();
+        }
+
+        // Handle Generate Receipt Button Click
+        function handleGenerateReceipt() {
+            if (products.length === 0) {
+                showNotification('Please add at least one product before generating receipt.', 'error');
+                return;
+            }
+            
+            generateReceipt();
+        }
+
+        // Generate Receipt
+        function generateReceipt() {
+            const receiptTableBody = document.querySelector('#receipt-table tbody');
+            receiptTableBody.innerHTML = '';
+
+            // Add current date to receipt
+            const currentDate = new Date();
+            document.getElementById('receipt-date').textContent = currentDate.toLocaleString();
+
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.productName}</td>
+                    <td>${product.quantity}</td>
+                    <td>Rs. ${product.price.toFixed(2)}</td>
+                    <td>${product.discount.toFixed(2)}%</td>
+                    <td>Rs. ${product.total.toFixed(2)}</td>
+                `;
+                receiptTableBody.appendChild(row);
+            });
+
+            document.getElementById('receipt-total-amount').textContent = `Rs.${totalAmount.toFixed(2)}`;
+            document.getElementById('receipt').style.display = 'block';
+            document.getElementById('print-receipt-btn').style.display = 'inline-block';
+
+            // Save receipt to database
+            saveReceiptToDatabase();
+        }
+
+        // Print Receipt
+        function printReceipt() {
+            const receiptContent = document.getElementById('receipt').innerHTML;
+            const originalContent = document.body.innerHTML;
+
+            document.body.innerHTML = `
+                <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+                    <h1 style="text-align: center;">Receipt</h1>
+                    ${receiptContent}
+                </div>
+            `;
+            
+            window.print();
+            
+            // Restore original content after printing
+            document.body.innerHTML = originalContent;
+            
+            // Reattach event listeners
+            document.getElementById('add-product-form').addEventListener('submit', addProduct);
+            document.getElementById('generate-receipt-btn').addEventListener('click', handleGenerateReceipt);
+            document.getElementById('print-receipt-btn').addEventListener('click', printReceipt);
+            
+            // Re-fetch products
+            fetchProducts();
+            
+            // Make remove buttons work again
+            const removeButtons = document.querySelectorAll('.remove-btn');
+            for (let i = 0; i < removeButtons.length; i++) {
+                const index = i;
+                removeButtons[i].addEventListener('click', function() {
+                    removeProduct(index);
+                });
+            }
+        }
+
+        // Save Receipt to Database
+        async function saveReceiptToDatabase() {
+            try {
+                const response = await fetch('/api/billing/save-receipt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        products: products,
+                        totalAmount: totalAmount,
+                    }),
+                });
+
+                if (response.ok) {
+                    showNotification('Receipt saved successfully!', 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save receipt');
+                }
+            } catch (error) {
+                console.error('Error saving receipt:', error);
+                showNotification('Error saving receipt: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
