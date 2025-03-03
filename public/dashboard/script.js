@@ -100,29 +100,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-// // Common Logout Function
-// function logout() {
-//     console.log('Logout function called'); // Debugging
-//     localStorage.removeItem('token'); // Clear token
-//     window.location.href = 'index.html'; // Redirect to home
-// }
-
-// // Attach Logout Function to Logout Buttons
-// document.addEventListener('DOMContentLoaded', () => {
-//     console.log('DOM fully loaded'); // Debugging
-//     const logoutButton = document.getElementById('logout-btn');
-//     if (logoutButton) {
-//         console.log('Logout button found'); // Debugging
-//         logoutButton.addEventListener('click', (e) => {
-//             e.preventDefault(); // Prevent default link behavior
-//             logout();
-//         });
-//     } else {
-//         console.log('Logout button not found'); // Debugging
-//     }
-// });
-
-
 // Common Logout Function
 function logout() {
     console.log('Logout function called'); // Debugging

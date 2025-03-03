@@ -29,12 +29,27 @@
         }
         button {
             background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 150px; /* Adjust width */
+    height: 45px; /* Adjust height */
         }
         button:hover {
             background-color: #218838;
+        }
+        button.search-btn {
+            background-color: #007bff;
+        }
+        button.search-btn:hover {
+            background-color: #0069d9;
+        }
+        button.update-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        button.update-btn:hover {
+            background-color: #e0a800;
         }
         table {
             width: 100%;
@@ -57,24 +72,111 @@
         .hidden {
             display: none;
         }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .radio-group input[type="radio"] {
+            width: auto;
+            margin-right: 5px;
+        }
+        .search-section, .update-section {
+            margin-bottom: 30px;
+        }
+        .customer-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .customer-info p {
+            margin: 5px 0;
+        }
+        .customer-info strong {
+            display: inline-block;
+            width: 120px;
+        }
     </style>
 </head>
 <body>
     <h1>Cashier Customer Management</h1>
 
+    <!-- Search Customer Section -->
+    <section class="search-section">
+        <h2>Search Customer</h2>
+        <form id="search-customer-form">
+            <input type="text" id="search-phone" placeholder="Enter customer phone number" required>
+            <button type="submit" class="search-btn">Search</button>
+        </form>
+
+        <!-- Customer Info Display -->
+        <div id="customer-info" class="customer-info hidden">
+            <!-- Customer details will be displayed here -->
+        </div>
+
+        <!-- Update Loyalty Form -->
+        <div id="update-loyalty-form" class="hidden">
+            <h3>Update Loyalty Status</h3>
+            <form id="loyalty-update-form">
+                <input type="hidden" id="customer-id">
+                <div class="form-group">
+                    <label>Change Loyalty Status:</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="update-loyalty-status" value="Yes"> Yes
+                        </label>
+                        <label>
+                            <input type="radio" name="update-loyalty-status" value="No"> No
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="update-btn">Update Loyalty Status</button>
+            </form>
+        </div>
+    </section>
+
     <!-- Add Customer Form -->
-    <h2>Add Customer</h2>
-    <form id="add-customer-form">
-        <input type="text" id="cus-name" placeholder="Name" required>
-        <input type="email" id="cus-email" placeholder="Email">
-        <input type="password" id="cus-password" placeholder="Password">
-        <input type="text" id="cus-tel" placeholder="Phone" required>
-        <select id="cus-type" required>
-            <option value="Online">Online</option>
-            <option value="Physical">Physical</option>
-        </select>
-        <button type="submit">Add Customer</button>
-    </form>
+    <section>
+        <h2>Add Customer</h2>
+        <form id="add-customer-form">
+            <input type="text" id="cus-name" placeholder="Name" required>
+            <input type="email" id="cus-email" placeholder="Email">
+            <input type="password" id="cus-password" placeholder="Password">
+            <input type="text" id="cus-tel" placeholder="Phone" required>
+            <select id="cus-type" required>
+                <option value="Online">Online</option>
+                <option value="Walk-In">Walk-In</option>
+            </select>
+            
+            <!-- Loyalty Status Radio Buttons -->
+            <div class="form-group">
+                <label>Loyalty Status:</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="loyalty-status" value="Yes"> Yes
+                    </label>
+                    <label>
+                        <input type="radio" name="loyalty-status" value="No" checked> No
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit">Add Customer</button>
+        </form>
+    </section>
 
     <!-- Customer Table -->
     <h2>Customer List</h2>
@@ -86,6 +188,7 @@
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Type</th>
+                <th>Loyalty Status</th>
                 <th>Registration Date</th>
             </tr>
         </thead>
@@ -144,47 +247,134 @@
                     <td>${customer.cus_email || '-'}</td>
                     <td>${customer.cus_tel}</td>
                     <td>${customer.cus_type}</td>
+                    <td>${customer.loyalty_status || 'No'}</td>
                     <td>${new Date(customer.cus_reg_date).toLocaleString()}</td>
-                   
                 `;
                 tableBody.appendChild(row);
             });
         }
-// Add Customer
-document.getElementById('add-customer-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const cus_name = document.getElementById('cus-name').value;
-    const cus_email = document.getElementById('cus-email').value;
-    const password = document.getElementById('cus-password').value;
-    const cus_tel = document.getElementById('cus-tel').value;
-    const cus_type = document.getElementById('cus-type').value;
 
-    // For physical customers, set email and password to null
-    const newCustomer = {
-        cus_name,
-        cus_email: cus_type === 'Physical' ? null : cus_email,
-        password: cus_type === 'Physical' ? null : password,
-        cus_tel,
-        cus_type
-    };
+        // Add Customer
+        document.getElementById('add-customer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cus_name = document.getElementById('cus-name').value;
+            const cus_email = document.getElementById('cus-email').value;
+            const password = document.getElementById('cus-password').value;
+            const cus_tel = document.getElementById('cus-tel').value;
+            const cus_type = document.getElementById('cus-type').value;
+            const loyalty_status = document.querySelector('input[name="loyalty-status"]:checked').value;
 
-    try {
-        const response = await fetch(backendUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newCustomer),
+            // For physical customers, set email and password to null
+            const newCustomer = {
+                cus_name,
+                cus_email: cus_type === 'Walk-In' ? null : cus_email,
+                password: cus_type === 'Walk-In' ? null : password,
+                cus_tel,
+                cus_type,
+                loyalty_status
+            };
+
+            try {
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newCustomer),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to add customer');
+                }
+                alert('Customer added successfully');
+                document.getElementById('add-customer-form').reset(); // Clear the form
+                // Reset loyalty status to "No"
+                document.querySelector('input[name="loyalty-status"][value="No"]').checked = true;
+                fetchCustomers(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                alert('Failed to add customer');
+            }
         });
-        if (!response.ok) {
-            throw new Error('Failed to add customer');
+
+        // Search Customer by Phone
+        document.getElementById('search-customer-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('search-phone').value;
+            
+            try {
+                const response = await fetch(`${backendUrl}/search?phone=${encodeURIComponent(phone)}`);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        alert('No customer found with this phone number');
+                        return;
+                    }
+                    throw new Error('Failed to search customer');
+                }
+                
+                const customers = await response.json();
+                
+                if (customers.length > 0) {
+                    displayCustomerInfo(customers[0]);
+                } else {
+                    alert('No customer found with this phone number');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Failed to search customer');
+            }
+        });
+        
+        // Display Customer Info
+        function displayCustomerInfo(customer) {
+            const customerInfoDiv = document.getElementById('customer-info');
+            customerInfoDiv.classList.remove('hidden');
+            
+            customerInfoDiv.innerHTML = `
+                <p><strong>Name:</strong> ${customer.cus_name}</p>
+                <p><strong>Phone:</strong> ${customer.cus_tel}</p>
+                <p><strong>Type:</strong> ${customer.cus_type}</p>
+                <p><strong>Loyalty Status:</strong> ${customer.loyalty_status || 'No'}</p>
+                <p><strong>Registration Date:</strong> ${new Date(customer.cus_reg_date).toLocaleString()}</p>
+            `;
+            
+            // Show update form and set customer ID
+            document.getElementById('update-loyalty-form').classList.remove('hidden');
+            document.getElementById('customer-id').value = customer.cus_id;
+            
+            // Set current loyalty status in radio buttons
+            const loyaltyValue = customer.loyalty_status || 'No';
+            document.querySelector(`input[name="update-loyalty-status"][value="${loyaltyValue}"]`).checked = true;
         }
-        alert('Customer added successfully');
-        document.getElementById('add-customer-form').reset(); // Clear the form
-        fetchCustomers(); // Refresh the table
-    } catch (error) {
-        console.error(error);
-        alert('Failed to add customer');
-    }
-});
+        
+        // Update Loyalty Status
+        document.getElementById('loyalty-update-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const customerId = document.getElementById('customer-id').value;
+            const loyaltyStatus = document.querySelector('input[name="update-loyalty-status"]:checked').value;
+            
+            try {
+                const response = await fetch(`${backendUrl}/${customerId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ loyalty_status: loyaltyStatus }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to update loyalty status');
+                }
+                
+                alert('Loyalty status updated successfully');
+                
+                // Update the displayed customer info to show the new loyalty status
+                const customerInfoDiv = document.getElementById('customer-info');
+                const loyaltyStatusElement = customerInfoDiv.querySelector('p:nth-child(4)');
+                loyaltyStatusElement.innerHTML = `<strong>Loyalty Status:</strong> ${loyaltyStatus}`;
+                
+                // Refresh the customer table
+                fetchCustomers();
+            } catch (error) {
+                console.error(error);
+                alert('Failed to update loyalty status');
+            }
+        });
 
         // Fetch customers when the page loads
         fetchCustomers();

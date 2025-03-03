@@ -21,13 +21,16 @@ router.post('/', (req, res) => {
     // For physical customers, email and password should be null
     let finalEmail = cus_email;
     let finalPassword = password;
-    if (cus_type === 'Physical') {
+    if (cus_type === 'Walk-In') {
         finalEmail = null;
         finalPassword = null;
     }
 
+    // Set default loyalty status if not provided
+    const finalLoyaltyStatus = loyalty_status || 'No';
+
     const query = 'INSERT INTO customer (cus_name, cus_email, password, cus_tel, cus_type, loyalty_status) VALUES (?, ?, ?, ?, ?, ?)';
-    dbConnection().query(query, [cus_name, finalEmail, finalPassword, cus_tel, cus_type, loyalty_status], (err, result) => {
+    dbConnection().query(query, [cus_name, finalEmail, finalPassword, cus_tel, cus_type, finalLoyaltyStatus], (err, result) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ message: 'Error adding customer', error: err.message });
@@ -79,27 +82,27 @@ router.get('/search', (req, res) => {
 // --------------------------
 // 4. Update Physical Customer
 // --------------------------
-router.put('/update-physical/:id', (req, res) => {
+router.put('/update-Walk-In/:id', (req, res) => {
     const { id } = req.params;
-    const { cus_name, cus_tel } = req.body;
+    const { cus_name, cus_tel, loyalty_status } = req.body;
 
     if (!cus_name || !cus_tel) {
         return res.status(400).json({ message: 'Name and phone are required' });
     }
 
     const checkQuery = 'SELECT * FROM customer WHERE cus_id = ? AND cus_type = ?';
-    dbConnection().query(checkQuery, [id, 'Physical'], (err, result) => {
+    dbConnection().query(checkQuery, [id, 'Walk-In'], (err, result) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ message: 'Error checking customer', error: err.message });
         }
 
         if (result.length === 0) {
-            return res.status(404).json({ message: 'Physical customer not found' });
+            return res.status(404).json({ message: 'Walk-In customer not found' });
         }
 
-        const updateQuery = 'UPDATE customer SET cus_name = ?, cus_tel = ? WHERE cus_id = ?';
-        dbConnection().query(updateQuery, [cus_name, cus_tel, id], (err, result) => {
+        const updateQuery = 'UPDATE customer SET cus_name = ?, cus_tel = ?, loyalty_status = ? WHERE cus_id = ?';
+        dbConnection().query(updateQuery, [cus_name, cus_tel, loyalty_status || 'No', id], (err, result) => {
             if (err) {
                 console.error('Database error:', err);
                 return res.status(500).json({ message: 'Error updating customer', error: err.message });
@@ -109,7 +112,7 @@ router.put('/update-physical/:id', (req, res) => {
                 return res.status(404).json({ message: 'Customer not found or no changes made' });
             }
 
-            res.status(200).json({ message: 'Physical customer updated successfully' });
+            res.status(200).json({ message: 'Walk-In customer updated successfully' });
         });
     });
 });
@@ -117,18 +120,18 @@ router.put('/update-physical/:id', (req, res) => {
 // --------------------------
 // 5. Delete Physical Customer
 // --------------------------
-router.delete('/delete-physical/:id', (req, res) => {
+router.delete('/delete-Walk-In/:id', (req, res) => {
     const { id } = req.params;
 
     const checkQuery = 'SELECT * FROM customer WHERE cus_id = ? AND cus_type = ?';
-    dbConnection().query(checkQuery, [id, 'Physical'], (err, result) => {
+    dbConnection().query(checkQuery, [id, 'Walk-In'], (err, result) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ message: 'Error checking customer', error: err.message });
         }
 
         if (result.length === 0) {
-            return res.status(404).json({ message: 'Physical customer not found' });
+            return res.status(404).json({ message: 'Walk-In customer not found' });
         }
 
         const deleteQuery = 'DELETE FROM customer WHERE cus_id = ?';
@@ -142,7 +145,64 @@ router.delete('/delete-physical/:id', (req, res) => {
                 return res.status(404).json({ message: 'Customer not found' });
             }
 
-            res.status(200).json({ message: 'Physical customer deleted successfully' });
+            res.status(200).json({ message: 'Walk-In customer deleted successfully' });
+        });
+    });
+});
+
+
+
+// Add to your routes/customers.js file
+
+// Get customer by ID
+router.get('/:id', (req, res) => {
+    const { id } = req.params;
+    const query = 'SELECT * FROM customer WHERE cus_id = ?';
+    
+    dbConnection().query(query, [id], (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ message: 'Error fetching customer', error: err.message });
+        }
+        
+        if (result.length === 0) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+        
+        res.status(200).json(result[0]);
+    });
+});
+
+// Update any customer (for showroom manager to update loyalty status)
+router.put('/:id', (req, res) => {
+    const { id } = req.params;
+    const { cus_name, cus_email, cus_tel, cus_type, loyalty_status } = req.body;
+    
+    // Check if customer exists
+    const checkQuery = 'SELECT * FROM customer WHERE cus_id = ?';
+    dbConnection().query(checkQuery, [id], (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ message: 'Error checking customer', error: err.message });
+        }
+        
+        if (result.length === 0) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+        
+        // Update the customer
+        const updateQuery = 'UPDATE customer SET loyalty_status = ? WHERE cus_id = ?';
+        dbConnection().query(updateQuery, [loyalty_status, id], (err, result) => {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ message: 'Error updating customer', error: err.message });
+            }
+            
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: 'Customer not found or no changes made' });
+            }
+            
+            res.status(200).json({ message: 'Customer loyalty status updated successfully' });
         });
     });
 });

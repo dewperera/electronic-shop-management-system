@@ -12,6 +12,8 @@ const customersRouter = require('./routes/customers');
 const productsRouter = require('./routes/products');
 const damageReportsRouter = require('./routes/damageReports');
 const restockRequestsRouter = require('./routes/restockRequests');
+
+
 const app = express();
 
 app.use(express.static('public'));
@@ -31,6 +33,7 @@ app.use("/api/customers",customersRouter)
 app.use('/api/products', productsRouter);
 app.use('/api/damage-reports', damageReportsRouter);
 app.use('/api/restock-requests', restockRequestsRouter);
+
 
 // // Start the server
 const PORT = process.env.PORT || 5502;

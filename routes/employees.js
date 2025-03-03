@@ -112,49 +112,36 @@ router.put('/:id', (req, res) => {
     console.log("Update request for employee:", em_id);
     console.log("Received data:", req.body);
 
-    // Check if the request is from an accountant (without role field)
+    let query, values;
+
     if (em_nic && em_fname && em_lname && em_email && em_tel && em_city && !role) {
-        // This is likely an accountant updating their own profile
-        const query = `
-            UPDATE employees 
-            SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ? 
-            WHERE em_id = ?
-        `;
-
-        dbConnection.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, em_id], (err, results) => {
-            if (err) {
-                console.error('Error updating employee profile:', err);
-                return res.status(500).json({ error: 'Error updating employee profile' });
-            }
-
-            if (results.affectedRows === 0) {
-                return res.status(404).json({ error: 'Employee not found' });
-            }
-
-            res.json({ message: 'Employee profile updated successfully' });
-        });
-    }
-    // Owner updating an employee (with role field)
+        // Accountant updating their own profile
+        query = `UPDATE employees SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ? WHERE em_id = ?`;
+        values = [em_nic, em_fname, em_lname, em_email, em_tel, em_city, em_id];
+    } 
     else if (em_nic && em_fname && em_lname && em_email && em_tel && em_city && role) {
-        const query = 'UPDATE employees SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ?, role = ? WHERE em_id = ?';
-
-        dbConnection.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role, em_id], (err, results) => {
-            if (err) {
-                console.error('Error updating employee:', err);
-                return res.status(500).json({ error: 'Error updating employee' });
-            }
-
-            if (results.affectedRows === 0) {
-                return res.status(404).json({ error: 'Employee not found' });
-            }
-
-            res.json({ message: 'Employee updated successfully' });
-        });
-    }
+        // Owner updating an employee (with role)
+        query = `UPDATE employees SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ?, role = ? WHERE em_id = ?`;
+        values = [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role, em_id];
+    } 
     else {
         return res.status(400).json({ error: "Missing required fields" });
     }
+
+    dbConnection().query(query, values, (err, results) => {
+        if (err) {
+            console.error('Error updating employee:', err);
+            return res.status(500).json({ error: 'Error updating employee' });
+        }
+
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ error: 'Employee not found' });
+        }
+
+        res.json({ message: 'Employee updated successfully' });
+    });
 });
+
 
 
 module.exports = router;

@@ -47,7 +47,7 @@
                         <input type="text" id="loginEmail" placeholder="Email" required>
                         <input type="password" id="loginPassword" placeholder="Password" required>
                         <button type="button" class="btn" onclick="handleLogin()">Login</button>
-                        <a href="">Forgot password</a>
+                        <a href="#" onclick="showForgotPassword()">Forgot password</a>
                     </form>
 
                     <form id="RegForm">
@@ -56,7 +56,21 @@
                       <input type="text" id="regPhone" placeholder="Phone" required>
                       <input type="password" id="regPassword" placeholder="Password" required>
                       <button type="button" class="btn" onclick="handleRegister()">Register</button>
-                  </form>
+                    </form>
+
+                    <form id="ForgotPasswordForm" style="display: none;">
+                        <input type="email" id="resetEmail" placeholder="Enter your email" required>
+                        <button type="button" class="btn" onclick="requestPasswordReset()">Reset Password</button>
+                        <a href="#" onclick="login()">Back to Login</a>
+                    </form>
+                    
+                    <form id="ResetPasswordForm" style="display: none;">
+                        <input type="hidden" id="resetToken">
+                        <input type="password" id="newPassword" placeholder="New Password" required>
+                        <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                        <button type="button" class="btn" onclick="resetPassword()">Set New Password</button>
+                        <a href="#" onclick="login()">Back to Login</a>
+                    </form>
                   
                 </div>
             </div>
@@ -89,21 +103,44 @@
   </div>
 
   <script>
-    // Toggle between Login and Register forms
+    // Global form variables
     var LoginForm = document.getElementById("LoginForm");
     var RegForm = document.getElementById("RegForm");
+    var ForgotPasswordForm = document.getElementById("ForgotPasswordForm");
+    var ResetPasswordForm = document.getElementById("ResetPasswordForm");
     var Indicator = document.getElementById("Indicator");
 
+    // Toggle between Login and Register forms
     function register() {
       RegForm.style.transform = "translateX(0px)";
       LoginForm.style.transform = "translateX(0px)";
       Indicator.style.transform = "translateX(100px)";
+      
+      // Hide other forms
+      ForgotPasswordForm.style.display = "none";
+      ResetPasswordForm.style.display = "none";
+      RegForm.style.display = "block";
+      LoginForm.style.display = "block";
     }
 
     function login() {
       RegForm.style.transform = "translateX(300px)";
       LoginForm.style.transform = "translateX(300px)";
       Indicator.style.transform = "translateX(0px)";
+      
+      // Hide other forms
+      ForgotPasswordForm.style.display = "none";
+      ResetPasswordForm.style.display = "none";
+      RegForm.style.display = "block";
+      LoginForm.style.display = "block";
+    }
+
+    // Show Forgot Password form
+    function showForgotPassword() {
+      RegForm.style.display = "none";
+      LoginForm.style.display = "none";
+      ResetPasswordForm.style.display = "none";
+      ForgotPasswordForm.style.display = "block";
     }
 
     // Handle Login
@@ -142,37 +179,145 @@
 
     // Handle Registration
     async function handleRegister() {
-    const cus_name = document.getElementById('regUsername').value;
-    const cus_email = document.getElementById('regEmail').value;
-    const cus_tel = document.getElementById('regPhone').value;
-    const password = document.getElementById('regPassword').value;
+      const cus_name = document.getElementById('regUsername').value;
+      const cus_email = document.getElementById('regEmail').value;
+      const cus_tel = document.getElementById('regPhone').value;
+      const password = document.getElementById('regPassword').value;
 
-    if (!cus_name || !cus_email || !cus_tel || !password) {
+      if (!cus_name || !cus_email || !cus_tel || !password) {
         alert('All fields are required');
         return;
-    }
+      }
 
-    try {
+      try {
         const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cus_name, cus_email, cus_tel, password })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cus_name, cus_email, cus_tel, password })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            alert(data.message);
-            login(); // Switch to login form
+          alert(data.message);
+          login(); // Switch to login form
         } else {
-            alert(data.message);
+          alert(data.message);
         }
-    } catch (error) {
+      } catch (error) {
         console.error('Error:', error);
         alert('An error occurred. Please try again.');
+      }
     }
-}
 
+    // Request password reset
+    async function requestPasswordReset() {
+      const email = document.getElementById('resetEmail').value;
+      
+      if (!email) {
+        alert('Email is required');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('If your email exists in our system, you will receive password reset instructions.');
+          login(); // Return to login form
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    }
+
+    // Process URL parameters for reset token
+    function checkResetToken() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      
+      if (token) {
+        // Show reset password form
+        RegForm.style.display = "none";
+        LoginForm.style.display = "none";
+        ForgotPasswordForm.style.display = "none";
+        ResetPasswordForm.style.display = "block";
+        
+        // Set token in hidden field
+        document.getElementById('resetToken').value = token;
+      }
+    }
+
+    // Set new password
+    async function resetPassword() {
+      const token = document.getElementById('resetToken').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      if (!newPassword || !confirmPassword) {
+        alert('Both password fields are required');
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ token, password: newPassword })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('Password has been reset successfully');
+          login(); // Return to login form
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    }
+
+    // Initialize form references and check for reset token on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      LoginForm = document.getElementById("LoginForm");
+      RegForm = document.getElementById("RegForm");
+      ForgotPasswordForm = document.getElementById("ForgotPasswordForm");
+      ResetPasswordForm = document.getElementById("ResetPasswordForm");
+      Indicator = document.getElementById("Indicator");
+      
+      checkResetToken();
+    });
+
+    // Mobile menu toggle (if you have this function)
+    function menutoggle() {
+      var MenuItems = document.getElementById("MenuItems");
+      if (MenuItems.style.maxHeight == "0px") {
+        MenuItems.style.maxHeight = "200px";
+      } else {
+        MenuItems.style.maxHeight = "0px";
+      }
+    }
   </script>
 </body>
 </html>
