@@ -7,8 +7,8 @@ const path = require('path');
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'root', // Change this to your actual MySQL password
-    database: 'ElectronicsShop' // Change to your actual database name
+    password: 'root', 
+    database: 'ElectronicsShop' 
 });
 
 // Serve reset password page (only for owners)

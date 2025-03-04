@@ -6,9 +6,9 @@ const dbConnection = require('../dbConnection');
 // Create database connection
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root',    // Replace with your actual username
-    password: 'root', // Replace with your actual password
-    database: 'ElectronicsShop'  // Replace with your actual database name
+    user: 'root',    
+    password: 'root', 
+    database: 'ElectronicsShop'  
 });
 
 // Connect to database
@@ -115,33 +115,6 @@ router.get('/api/orders/:id', (req, res) => {
         });
     });
 });
-
-// // Update order status
-// router.put('/api/orders/:id/status', (req, res) => {
-//     const orderId = req.params.id;
-//     const { status } = req.body;
-//     console.log(`Updating order ${orderId} status to ${status}`);
-    
-//     const query = `
-//         UPDATE order_status
-//         SET status = ?, updated_at = CURRENT_TIMESTAMP
-//         WHERE order_id = ?
-//     `;
-    
-//     db.query(query, [status, orderId], (err, results) => {
-//         if (err) {
-//             console.error('Database error:', err);
-//             return res.status(500).json({ error: err.message });
-//         }
-        
-//         if (results.affectedRows === 0) {
-//             return res.status(404).json({ error: 'Order not found' });
-//         }
-        
-//         console.log('Order status updated successfully');
-//         res.json({ success: true, message: 'Order status updated successfully' });
-//     });
-// });
 
 
 // Update order status and reduce product quantities

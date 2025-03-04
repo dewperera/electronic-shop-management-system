@@ -23,43 +23,6 @@ router.post('/', (req, res) => {
 });
 
 
-
-
-
-// Update an employee
-// app.put('/employees/:id', (req, res) => {
-//     const { em_nic, em_fname, em_lname, em_email, em_tel, em_city, role } = req.body;
-//     const em_id = req.params.id;
-
-//     if (!em_nic || !em_fname || !em_lname || !em_email || !em_tel || !em_city || !role) {
-//         return res.status(400).json({ error: "Missing required fields" });
-//     }
-
-//     // Check if employee exists before updating
-//     db.query('SELECT * FROM employees WHERE em_id = ?', [em_id], (err, results) => {
-//         if (err) {
-//             console.error('Database error:', err);
-//             return res.status(500).json({ error: 'Database error' });
-//         }
-//         if (results.length === 0) {
-//             return res.status(404).json({ error: 'Employee not found' });
-//         }
-
-//         // Update the employee with the correct parameter array
-//         const query = 'UPDATE employees SET em_nic = ?, em_fname = ?, em_lname = ?, em_email = ?, em_tel = ?, em_city = ?, role = ? WHERE em_id = ?';
-//         db.query(query, [em_nic, em_fname, em_lname, em_email, em_tel, em_city, role, em_id], (err, updateResults) => {
-//             if (err) {
-//                 console.error('Error updating employee:', err);
-//                 return res.status(500).json({ error: 'Error updating employee' });
-//             }
-//             res.json({ message: 'Employee updated successfully' });
-//         });
-//     });
-// });
-
-
-
-
 // Delete an employee
 router.delete('/:id', (req, res) => {
     const em_id = req.params.id;
