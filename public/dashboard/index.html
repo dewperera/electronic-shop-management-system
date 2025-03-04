@@ -3,45 +3,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloudline Technologies</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Clouline Technologies - Employee Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Arial', sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 0.7; }
+            100% { transform: translateY(-100vh) translateX(20vw); opacity: 0; }
+        }
+        
+        .login-container {
+            position: relative;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            width: 400px;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+            backdrop-filter: blur(5px);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-header {
+            margin-bottom: 30px;
+        }
+        
+        .company-name {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            margin-bottom: 10px;
+            font-size: 22px;
+            color: #444;
+            font-weight: 600;
+        }
+        
+        .login-subtitle {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 15px;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #6a11cb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+            background-color: white;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 46px;
+            color: #777;
+            cursor: pointer;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 117, 252, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(-1px);
+        }
+        
+        .error-message {
+            color: #ff4d4d;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+            padding: 10px;
+            background-color: rgba(255, 77, 77, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #ff4d4d;
+        }
+        
+        .footer-text {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #777;
+        }
+        
+        .help-links {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .help-link {
+            color: #6a11cb;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .help-link:hover {
+            color: #2575fc;
+        }
+    </style>
 </head>
 <body>
-    <!-- Sidebar Menu -->
-    <div class="sidebar">
-        <div class="logo">
-            <!-- <i class="fas fa-store"></i> -->
-            <span>CLOUDLINE TECHNOLOGIES</span>
+    <!-- Background particles -->
+    <div class="particles" id="particles"></div>
+    
+    <div class="login-container">
+        <div class="login-header">
+            <div class="company-name">Clouline Technologies</div>
+            <h2>Employee Portal</h2>
+            <p class="login-subtitle">Sign in to access your dashboard</p>
         </div>
-        <ul class="menu">
-            <li><a href="#dashboard"><i class="fas fa-home"></i>Dashboard</a></li>
-            <!-- <li><a href="#owner"><i class="fas fa-user-tie"></i>Owner</a></li> -->
-            <li><a href="owner-login.html"><i class="fas fa-user-tie"></i>Owner</a></li>
-
-            <li><a href="accountant-login.html"><i class="fas fa-calculator"></i>Accountant</a></li>
-            <li><a href="showroom-manager-login.html"><i class="fas fa-desktop"></i>Showroom Manager</a></li>
-            <li><a href="stock-manager-login.html"><i class="fas fa-boxes"></i>Stock Manager</a></li>
-            <li><a href="cashier-login.html"><i class="fas fa-cash-register"></i>Cashier</a></li>
-        </ul>
+        
+        <div id="error-message" class="error-message"></div>
+        
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            <span class="password-toggle" id="password-toggle">👁️</span>
+        </div>
+        
+        <button onclick="login()">Sign In</button>
+        
+        <!-- <div class="help-links">
+            <a href="#" class="help-link">Forgot Password?</a>
+            <a href="#" class="help-link">Need Help?</a>
+        </div> -->
+        
+        <p class="footer-text">© 2023 Clouline Technologies. All rights reserved.</p>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <header class="header">
-            <h1>Welcome to Cloudline Technologies</h1>
-        </header>
-        <div class="content">
-            <p>Select your role from the sidebar to proceed.</p>
-        </div>
-    </div>
+    <script>
+        // Generate background particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 25;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 5px and 20px
+                const size = Math.random() * 15 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.top = `${Math.random() * 100}vh`;
+                
+                // Random animation duration between 15s and 30s
+                const duration = Math.random() * 15 + 15;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // Random delay
+                const delay = Math.random() * 10;
+                particle.style.animationDelay = `${delay}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Password visibility toggle
+        document.getElementById('password-toggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                this.textContent = '🔒';
+            } else {
+                passwordInput.type = 'password';
+                this.textContent = '👁️';
+            }
+        });
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2023 Electronics Shop. All rights reserved.</p>
-    </footer>
+        // Create particles when page loads
+        window.addEventListener('load', createParticles);
 
-    <script src="script.js"></script>
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+
+            // Create request object
+            const data = {
+                username: username,
+                password: password
+            };
+
+            // Send login request to server
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Redirect based on user role
+                    switch(data.role) {
+                        case 'Owner':
+                            window.location.href = '/owner-dashboard.html';
+                            break;
+                        case 'Accountant':
+                            window.location.href = '/accountant-dashboard.html';
+                            break;
+                        case 'Stock Manager':
+                            window.location.href = '/stock-manager-dashboard.html';
+                            break;
+                        case 'Showroom Manager':
+                            window.location.href = '/showroom-manager-dashboard.html';
+                            break;
+                        case 'Cashier':
+                            window.location.href = '/cashier-dashboard.html';
+                            break;
+                        default:
+                            showError('Unknown user role');
+                    }
+                } else {
+                    showError(data.message || 'Invalid username or password');
+                }
+            })
+            .catch(error => {
+                showError('Login failed. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            // Automatically hide the error after 5 seconds
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

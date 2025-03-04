@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        input, button, select {
+            margin: 5px;
+            padding: 8px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 8px 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin: 5px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+        }
+        .radio-group input[type="radio"] {
+            margin-right: 5px;
+        }
+        .loyalty-toggle {
+            margin: 10px 5px;
+        }
+        
+        /* Report Styles */
+        #customer-report {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: none;
+        }
+        #report-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #report-date {
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        #report-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #report-table th {
+            background-color: #007bff;
+            color: white;
+        }
+        #report-footer {
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+        }
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        #notification {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Customer Management</h1>
+    
+    <!-- Notification Area -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Existing forms and table as in the original document -->
+    <!-- ... (existing content) ... -->
+
+    <!-- Customer Table -->
+    <h2>Customer Details</h2>
+    <table id="customer-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Loyalty Status</th>
+                <th>Registration Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Customer data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Report Generation Controls -->
+    <div class="filter-section">
+        <h2>Generate Customer Report</h2>
+        <select id="filter-type">
+            <option value="all">All Customers</option>
+            <option value="Walk-In">Walk-In Customers</option>
+            <option value="Online">Online Customers</option>
+            <option value="loyalty">Loyalty Customers</option>
+        </select>
+        <button id="generate-report-btn">Generate Report</button>
+        <button id="print-report-btn" style="display: none;">Print Report</button>
+    </div>
+
+    <!-- Customer Report Section -->
+    <div id="customer-report">
+        <div id="report-header">
+            <h2>Customer Details Report</h2>
+            <div id="report-date">Generated on: <span id="generation-date"></span></div>
+            <div id="report-type">Type: <span id="report-filter-type"></span></div>
+        </div>
+        
+        <table id="report-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Type</th>
+                    <th>Loyalty Status</th>
+                    <th>Registration Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Report data will be inserted here dynamically -->
+            </tbody>
+        </table>
+        
+        <div id="report-footer">
+            Total Customers: <span id="total-customers">0</span>
+        </div>
+    </div>
+
+    <script>
+        const backendUrl = '/api/customers';
+        let allCustomers = []; // Store all customers for filtering
+
+        // Fetch and display customers when the page loads
+        fetchCustomers();
+
+        // Fetch customer data from the backend
+        async function fetchCustomers() {
+            try {
+                const response = await fetch(backendUrl);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch customers');
+                }
+                allCustomers = await response.json();
+                displayCustomers(allCustomers);
+            } catch (error) {
+                console.error(error);
+                showNotification('Failed to load customer data', 'error');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.style.display = 'block';
+            
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Display customer data in the table
+        function displayCustomers(customers) {
+            const tableBody = document.querySelector('#customer-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            customers.forEach(customer => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${customer.cus_id}</td>
+                    <td>${customer.cus_name}</td>
+                    <td>${customer.cus_email || '-'}</td>
+                    <td>${customer.cus_tel}</td>
+                    <td>${customer.cus_type}</td>
+                    <td>${customer.loyalty_status || 'No'}</td>
+                    <td>${new Date(customer.cus_reg_date).toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Generate Report Button Event Listener
+        document.getElementById('generate-report-btn').addEventListener('click', generateCustomerReport);
+        document.getElementById('print-report-btn').addEventListener('click', printCustomerReport);
+
+        // Generate Customer Report
+        function generateCustomerReport() {
+            const filterType = document.getElementById('filter-type').value;
+            
+            // Filter customers based on selected type
+            let filteredCustomers = [...allCustomers];
+            let reportTitle = "All Customers";
+            
+            if (filterType === 'Walk-In') {
+                filteredCustomers = allCustomers.filter(customer => customer.cus_type === 'Walk-In');
+                reportTitle = "Walk-In Customers";
+            } else if (filterType === 'Online') {
+                filteredCustomers = allCustomers.filter(customer => customer.cus_type === 'Online');
+                reportTitle = "Online Customers";
+            } else if (filterType === 'loyalty') {
+                filteredCustomers = allCustomers.filter(customer => customer.loyalty_status === 'Yes');
+                reportTitle = "Loyalty Customers";
+            }
+            
+            if (filteredCustomers.length === 0) {
+                showNotification('No customers match the selected filter criteria', 'error');
+                return;
+            }
+            
+            // Update the report header
+            const currentDate = new Date();
+            document.getElementById('generation-date').textContent = currentDate.toLocaleString();
+            document.getElementById('report-filter-type').textContent = reportTitle;
+            
+            // Populate the report table
+            const reportTableBody = document.querySelector('#report-table tbody');
+            reportTableBody.innerHTML = ''; // Clear existing rows
+            
+            filteredCustomers.forEach(customer => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${customer.cus_id}</td>
+                    <td>${customer.cus_name}</td>
+                    <td>${customer.cus_email || '-'}</td>
+                    <td>${customer.cus_tel}</td>
+                    <td>${customer.cus_type}</td>
+                    <td>${customer.loyalty_status || 'No'}</td>
+                    <td>${new Date(customer.cus_reg_date).toLocaleString()}</td>
+                `;
+                reportTableBody.appendChild(row);
+            });
+            
+            // Update footer with total count
+            document.getElementById('total-customers').textContent = filteredCustomers.length;
+            
+            // Show the report and print button
+            document.getElementById('customer-report').style.display = 'block';
+            document.getElementById('print-report-btn').style.display = 'inline-block';
+            
+            // Scroll to the report
+            document.getElementById('customer-report').scrollIntoView({ behavior: 'smooth' });
+            
+            // Optionally save report to database
+            saveReportToDatabase(filterType, filteredCustomers);
+        }
+        
+        // Print Customer Report
+        function printCustomerReport() {
+            const reportContent = document.getElementById('customer-report').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    ${reportContent}
+                </div>
+            `;
+            
+            window.print();
+            
+            // Restore original content after printing
+            document.body.innerHTML = originalContent;
+            
+            // Reattach event listeners after restoring content
+            document.getElementById('generate-report-btn').addEventListener('click', generateCustomerReport);
+            document.getElementById('print-report-btn').addEventListener('click', printCustomerReport);
+            
+            // Re-fetch customers after restoration
+            fetchCustomers();
+            
+            // Re-add existing form event listeners
+            setupFormEventListeners();
+        }
+        
+        // Save report to database
+        async function saveReportToDatabase(reportType, customers) {
+            try {
+                const response = await fetch('/api/reports/save-customer-report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        reportType: reportType,
+                        generatedDate: new Date().toISOString(),
+                        customerCount: customers.length,
+                        customers: customers
+                    }),
+                });
+                
+                if (response.ok) {
+                    showNotification('Report saved successfully!', 'success');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to save report');
+                }
+            } catch (error) {
+                console.error('Error saving report:', error);
+                showNotification('Error saving report: ' + error.message, 'error');
+            }
+        }
+        
+        // Setup form event listeners function
+        function setupFormEventListeners() {
+            // Re-add event listeners for existing forms
+            document.getElementById('update-customer-form').addEventListener('submit', updateCustomer);
+            document.getElementById('update-loyalty-form').addEventListener('submit', updateLoyaltyStatus);
+            document.getElementById('delete-customer-form').addEventListener('submit', deleteCustomer);
+            document.getElementById('search-customer-form').addEventListener('submit', searchCustomer);
+        }
+        
+        // Update Physical Customer handler
+        async function updateCustomer(e) {
+            e.preventDefault();
+            const cus_id = document.getElementById('update-cus_id').value;
+            const updatedCustomer = {
+                cus_name: document.getElementById('update-cus_name').value,
+                cus_tel: document.getElementById('update-cus_tel').value,
+                loyalty_status: document.querySelector('input[name="update-loyalty-status"]:checked').value
+            };
+
+            try {
+                const response = await fetch(`${backendUrl}/update-physical/${cus_id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedCustomer),
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to update customer');
+                }
+                showNotification('Customer updated successfully', 'success');
+                document.getElementById('update-customer-form').reset();
+                document.querySelector('input[name="update-loyalty-status"][value="No"]').checked = true;
+                fetchCustomers(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                showNotification('Failed to update customer', 'error');
+            }
+        }
+        
+        // Update Loyalty Status handler
+        async function updateLoyaltyStatus(e) {
+            e.preventDefault();
+            const cus_id = document.getElementById('loyalty-cus_id').value;
+            const loyalty_status = document.querySelector('input[name="loyalty-status"]:checked').value;
+
+            try {
+                // First fetch the customer to get current details
+                const fetchResponse = await fetch(`${backendUrl}/${cus_id}`);
+                if (!fetchResponse.ok) {
+                    throw new Error('Customer not found');
+                }
+                const customer = await fetchResponse.json();
+
+                // Update only the loyalty status
+                const response = await fetch(`${backendUrl}/${cus_id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...customer,
+                        loyalty_status
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update loyalty status');
+                }
+                showNotification('Loyalty status updated successfully', 'success');
+                document.getElementById('update-loyalty-form').reset();
+                fetchCustomers(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                showNotification(error.message, 'error');
+            }
+        }
+        
+        // Delete Walk-In Customer handler
+        async function deleteCustomer(e) {
+            e.preventDefault();
+            const cus_id = document.getElementById('delete-cus_id').value;
+
+            try {
+                const response = await fetch(`${backendUrl}/delete-Walk-In/${cus_id}`, {
+                    method: 'DELETE',
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to delete customer');
+                }
+                showNotification('Customer deleted successfully', 'success');
+                document.getElementById('delete-customer-form').reset();
+                fetchCustomers(); // Refresh the table
+            } catch (error) {
+                console.error(error);
+                showNotification('Failed to delete customer', 'error');
+            }
+        }
+        
+        // Search Customer by Phone handler
+        async function searchCustomer(e) {
+            e.preventDefault();
+            const cus_tel = document.getElementById('search-cus_tel').value;
+
+            try {
+                // Use the correct endpoint and query parameter
+                const response = await fetch(`${backendUrl}/search?phone=${cus_tel}`);
+                if (!response.ok) {
+                    throw new Error('Customer not found');
+                }
+                const customers = await response.json();
+                displayCustomers(customers); // Display the search results
+            } catch (error) {
+                console.error(error);
+                showNotification('Customer not found', 'error');
+            }
+        }
+        
+        // Initial setup of event listeners
+        setupFormEventListeners();
+    </script>
+</body>
+</html>

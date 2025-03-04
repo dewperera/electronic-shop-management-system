@@ -95,74 +95,98 @@
             color: #F44336;
             margin-bottom: 10px;
         }
+        .report-buttons {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .report-buttons button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        #report-content {
+            display: none;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: #fff;
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Product Requests</h1>
+<div class="container">
+    <h1>Product Requests/Reports</h1>
+    
+    <div class="tab-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="damaged">Damaged/Outdated Products</div>
+            <div class="tab" data-tab="restock">Restock Requests</div>
+        </div>
         
-        <div class="tab-container">
-            <div class="tabs">
-                <div class="tab active" data-tab="damaged">Damaged/Outdated Products</div>
-                <div class="tab" data-tab="restock">Restock Requests</div>
+        <div id="damaged" class="tab-content active">
+            <div class="table-container">
+                <h2>Recorded Issues</h2>
+                <div id="damageListMessage"></div>
+                
+                <table id="damageReportsTable">
+                    <thead>
+                        <tr>
+                            <th>Date Reported</th>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Issue Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" class="loading">Loading reports...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            
-            <!-- Damaged/Outdated Products Tab -->
-            <div id="damaged" class="tab-content active">
-                <div class="table-container">
-                    <h2>Recorded Issues</h2>
-                    <div id="damageListMessage"></div>
-                    
-                    <table id="damageReportsTable">
-                        <thead>
-                            <tr>
-                                <th>Date Reported</th>
-                                <th>Product ID</th>
-                                <th>Product Name</th>
-                                <th>Quantity</th>
-                                <th>Issue Type</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Damage reports will be inserted here by JavaScript -->
-                            <tr>
-                                <td colspan="8" class="loading">Loading reports...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="report-buttons">
+                <button id="generate-damage-report-btn">Generate Report</button>
+                <button id="print-damage-report-btn" style="display: none;">Print Report</button>
             </div>
-            
-            <!-- Restock Requests Tab -->
-            <div id="restock" class="tab-content">
-                <div class="table-container">
-                    <h2>Restock Requests</h2>
-                    <div id="restockListMessage"></div>
-                    
-                    <table id="restockRequestsTable">
-                        <thead>
-                            <tr>
-                                <th>Date Requested</th>
-                                <th>Product ID</th>
-                                <th>Product Name</th>
-                                <th>Current Qty</th>
-                                <th>Requested Qty</th>
-                                <th>Priority</th>
-                                <!-- <th>Status</th> -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Restock requests will be inserted here by JavaScript -->
-                            <tr>
-                                <td colspan="8" class="loading">Loading requests...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div id="report-content" style="display: none;"></div>
+        </div>
+        
+        <div id="restock" class="tab-content">
+            <div class="table-container">
+                <h2>Restock Requests</h2>
+                <div id="restockListMessage"></div>
+                
+                <table id="restockRequestsTable">
+                    <thead>
+                        <tr>
+                            <th>Date Requested</th>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th>Current Qty</th>
+                            <th>Requested Qty</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" class="loading">Loading requests...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+            <div class="report-buttons">
+                <button id="generate-restock-report-btn">Generate Report</button>
+                <button id="print-restock-report-btn" style="display: none;">Print Report</button>
+            </div>
+            <div id="restock-report-content" style="display: none;"></div>
         </div>
     </div>
+</div>
 
     <script>
         // Helper functions
@@ -295,10 +319,158 @@
             });
         }
 
+        document.getElementById('generate-damage-report-btn').addEventListener('click', generateDamageReport);
+        document.getElementById('print-damage-report-btn').addEventListener('click', printDamageReport);
+
+                async function generateDamageReport() {
+                    const reports = await fetch('/api/damage-reports').then(res => res.json());
+            if (reports.length === 0) {
+                showMessage('damageListMessage', 'No damage reports found.', true);
+                return;
+            }
+            
+            let reportHTML = `
+                <h2>Damaged/Outdated Product Report</h2>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date Reported</th>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Issue Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            reports.forEach(report => {
+                reportHTML += `
+                    <tr>
+                        <td>${formatDate(report.reportDate)}</td>
+                        <td>${report.product_id}</td>
+                        <td>${report.product_name}</td>
+                        <td>${report.quantity}</td>
+                        <td>${report.issue_type}</td>
+                        <td>${report.description}</td>
+                    </tr>
+                `;
+            });
+            
+            reportHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('report-content').innerHTML = reportHTML;
+            document.getElementById('report-content').style.display = 'block';
+            document.getElementById('print-damage-report-btn').style.display = 'inline-block';
+        
+        }
+        
+        function printDamageReport() {
+            const reportContent = document.getElementById('report-content').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    ${reportContent}
+                </div>
+            `;
+            
+            window.print();
+            
+            document.body.innerHTML = originalContent;
+            
+            document.getElementById('generate-damage-report-btn').addEventListener('click', generateDamageReport);
+            document.getElementById('print-damage-report-btn').addEventListener('click', printDamageReport);
+            fetchDamageReports();
+        
+        }
+        
+        // Generate and Print Restock Report
+        document.getElementById('generate-restock-report-btn').addEventListener('click', generateRestockReport);
+        document.getElementById('print-restock-report-btn').addEventListener('click', printRestockReport);
+        
+        async function generateRestockReport() {
+            const requests = await fetch('/api/restock-requests').then(res => res.json());
+            if (requests.length === 0) {
+                showMessage('restockListMessage', 'No restock requests found.', true);
+                return;
+            }
+            
+            let reportHTML = `
+                <h2>Restock Requests Report</h2>
+                <p>Generated on: ${new Date().toLocaleString()}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date Requested</th>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th>Current Qty</th>
+                            <th>Requested Qty</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            requests.forEach(request => {
+                reportHTML += `
+                    <tr>
+                        <td>${formatDate(request.requestDate)}</td>
+                        <td>${request.product_id}</td>
+                        <td>${request.product_name}</td>
+                        <td>${request.current_quantity}</td>
+                        <td>${request.requested_quantity}</td>
+                        <td>${request.priority}</td>
+                    </tr>
+                `;
+            });
+            
+            reportHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('restock-report-content').innerHTML = reportHTML;
+            document.getElementById('restock-report-content').style.display = 'block';
+            document.getElementById('print-restock-report-btn').style.display = 'inline-block';
+        }
+        
+        function printRestockReport() {
+            const reportContent = document.getElementById('restock-report-content').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    ${reportContent}
+                </div>
+            `;
+            
+            window.print();
+            
+            document.body.innerHTML = originalContent;
+            
+            document.getElementById('generate-restock-report-btn').addEventListener('click', generateRestockReport);
+            document.getElementById('print-restock-report-btn').addEventListener('click', printRestockReport);
+            fetchRestockRequests();
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             fetchDamageReports(); // Load damage reports by default
         });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDamageReports(); // Load damage reports by default
+        });
+
+        
     </script>
 </body>
 </html>

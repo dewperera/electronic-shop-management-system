@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password</title>
+    <title>Register New Staff</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,7 +15,7 @@
             align-items: center;
             height: 100vh;
         }
-        .reset-container {
+        .register-container {
             background-color: white;
             padding: 20px;
             border-radius: 5px;
@@ -34,7 +34,7 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input[type="text"], input[type="password"] {
+        input, select {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -79,82 +79,109 @@
     </style>
 </head>
 <body>
-    <div class="reset-container">
-        <h2>Reset User Password</h2>
+    <div class="register-container">
+        <h2>Register New Staff</h2>
         <div id="success-message" class="message success"></div>
         <div id="error-message" class="message error"></div>
         
+        <div class="form-group">
+            <label for="fullname">Full Name:</label>
+            <input type="text" id="fullname" name="fullname" required>
+        </div>
         <div class="form-group">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
         </div>
         <div class="form-group">
-            <label for="new-password">New Password:</label>
-            <input type="password" id="new-password" name="new-password" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
         </div>
         <div class="form-group">
-            <label for="confirm-password">Confirm Password:</label>
-            <input type="password" id="confirm-password" name="confirm-password" required>
+            <label for="role">Role:</label>
+            <select id="role" name="role" required>
+                <option value="">Select Role</option>
+                <option value="Accountant">Accountant</option>
+                <option value="Stock Manager">Stock Manager</option>
+                <option value="Showroom Manager">Showroom Manager</option>
+                <option value="Cashier">Cashier</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="text" id="phone" name="phone" required>
         </div>
         
-        <button onclick="resetPassword()">Reset Password</button>
+        <button onclick="registerStaff()">Register Staff</button>
         <button class="back-button" onclick="window.location.href='/owner-dashboard.html'">Back to Dashboard</button>
     </div>
 
     <script>
-        function resetPassword() {
+        function registerStaff() {
+            const fullname = document.getElementById('fullname').value;
             const username = document.getElementById('username').value;
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
             
             // Clear previous messages
             hideMessage('success-message');
             hideMessage('error-message');
             
             // Validate inputs
-            if (!username || !newPassword || !confirmPassword) {
+            if (!fullname || !username || !password || !role || !email || !phone) {
                 showError('All fields are required');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                showError('Passwords do not match');
                 return;
             }
             
             // Create request object
             const data = {
+                fullname: fullname,
                 username: username,
-                newPassword: newPassword
+                password: password,
+                role: role,
+                email: email,
+                phone: phone
             };
             
-            // Send reset password request to server
-            fetch('/reset-password', {
+            // Send staff registration request to server
+            fetch('/register-staff', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                credentials: 'same-origin'  // Ensure the session cookie is sent with the request
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Network response was not ok');
+                    });
                 }
                 return response.json();
             })
             .then(data => {
                 if (data.success) {
-                    showSuccess(data.message || 'Password reset successfully');
+                    showSuccess(data.message || 'Staff registered successfully');
                     // Clear the form
+                    document.getElementById('fullname').value = '';
                     document.getElementById('username').value = '';
-                    document.getElementById('new-password').value = '';
-                    document.getElementById('confirm-password').value = '';
+                    document.getElementById('password').value = '';
+                    document.getElementById('role').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('phone').value = '';
                 } else {
-                    showError(data.message || 'Failed to reset password');
+                    showError(data.message || 'Failed to register staff');
                 }
             })
             .catch(error => {
-                showError('Password reset failed. Please try again.');
+                showError(error.message || 'Staff registration failed. Please try again.');
                 console.error('Error:', error);
             });
         }

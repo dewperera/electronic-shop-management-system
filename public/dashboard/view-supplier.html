@@ -80,7 +80,7 @@
                 <th>Address</th>
                 <th>Phone</th>
                 <th>Email</th>
-                <th>Register Date</th>
+                <!-- <th>Register Date</th> -->
             </tr>
         </thead>
         <tbody>
@@ -125,7 +125,7 @@ async function fetchSuppliers() {
                     <td>${supplier.sup_address}</td>
                     <td>${supplier.sup_tel}</td>
                     <td>${supplier.sup_email}</td>
-                    <td>${supplier.sup_date}</td>
+                  
                 `;
                 tableBody.appendChild(row);
             });
@@ -210,21 +210,27 @@ document.getElementById('delete-supplier-form').addEventListener('submit', async
 
 // Search supplier by ID
 document.getElementById('search-supplier-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const sup_id = document.getElementById('search-sup_id').value;
+    e.preventDefault();
+    const sup_id = document.getElementById('search-sup_id').value;
+    console.log("Searching for Supplier ID:", sup_id); // Debugging log
 
-            try {
-                const response = await fetch(`/api/supplier/${sup_id}`);
-                if (!response.ok) {
-                    throw new Error('supplier not found');
-                }
-                const supplier = await response.json();
-                displaySuppliers([supplier]); // Display the single employee
-            } catch (error) {
-                console.error(error);
-                alert('Supplier not found');
-            }
-        });
+    try {
+        const response = await fetch(`/api/supplier/${sup_id}`);
+        console.log("Response Status:", response.status); // Log HTTP status code
+
+        if (!response.ok) {
+            throw new Error('Supplier not found');
+        }
+
+        const supplier = await response.json();
+        console.log("Supplier Data:", supplier); // Log retrieved supplier
+        displaySuppliers([supplier]); 
+    } catch (error) {
+        console.error(error);
+        alert('Supplier not found');
+    }
+});
+
 
     </script>
 </body>

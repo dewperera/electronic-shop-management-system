@@ -147,6 +147,48 @@
             color: #4CAF50;
             margin-bottom: 10px;
         }
+        #product-stock-report {
+    margin-top: 30px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#stock-report-header {
+    margin-bottom: 20px;
+}
+
+#stock-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#stock-report-table th, #stock-report-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+#stock-report-table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: 500;
+}
+
+#stock-report-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#stock-report-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+#stock-report-footer {
+    font-weight: bold;
+    text-align: right;
+}
     </style>
 </head>
 <body>
@@ -261,6 +303,47 @@
         </div>
     </div>
 
+    <!-- Report Generation Controls -->
+<div class="filter-section">
+    <h2>Generate Product Stock Report</h2>
+    <select id="stock-filter-type">
+        <option value="all">All Products</option>
+        <option value="in-stock">In-Stock Products</option>
+        <option value="out-of-stock">Out-of-Stock Products</option>
+    </select>
+    <button id="generate-stock-report-btn">Generate Report</button>
+    <button id="print-stock-report-btn" style="display: none;">Print Report</button>
+</div>
+
+<!-- Product Stock Report Section -->
+<div id="product-stock-report" style="display: none;">
+    <div id="stock-report-header">
+        <h2>Product Stock Report</h2>
+        <div id="stock-report-date">Generated on: <span id="stock-generation-date"></span></div>
+        <div id="stock-report-type">Type: <span id="stock-report-filter-type"></span></div>
+    </div>
+    
+    <table id="stock-report-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price (Rs.)</th>
+                <th>Quantity</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Report data will be inserted here dynamically -->
+        </tbody>
+    </table>
+    
+    <div id="stock-report-footer">
+        Total Products: <span id="total-products">0</span>
+    </div>
+</div>
+
     <script>
         const backendUrl = '/api/products';
         
@@ -299,30 +382,32 @@
         }
 
         // Fetch and display all products
-        async function fetchProducts() {
-            try {
-                const tableBody = document.querySelector('#productTable tbody');
-                tableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading products...</td></tr>';
-                
-                const response = await fetch(backendUrl);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch products');
-                }
-                
-                const products = await response.json();
-                
-                if (products.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="8" class="loading">No products found</td></tr>';
-                    return;
-                }
-                
-                displayProducts(products);
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                const tableBody = document.querySelector('#productTable tbody');
-                tableBody.innerHTML = `<tr><td colspan="8" class="error-message">Failed to load products: ${error.message}</td></tr>`;
-            }
+        let allProducts = []; // Store all products for filtering
+
+async function fetchProducts() {
+    try {
+        const tableBody = document.querySelector('#productTable tbody');
+        tableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading products...</td></tr>';
+        
+        const response = await fetch(backendUrl);
+        if (!response.ok) {
+            throw new Error('Failed to fetch products');
         }
+        
+        allProducts = await response.json(); // Store products globally
+        
+        if (allProducts.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="8" class="loading">No products found</td></tr>';
+            return;
+        }
+        
+        displayProducts(allProducts);
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        const tableBody = document.querySelector('#productTable tbody');
+        tableBody.innerHTML = `<tr><td colspan="8" class="error-message">Failed to load products: ${error.message}</td></tr>`;
+    }
+}
 
         // Display products in the table
         function displayProducts(products) {
@@ -508,6 +593,88 @@
                 showMessage('productListMessage', `Failed to delete product: ${error.message}`, true);
             }
         }
+
+        // Generate Stock Report Button Event Listener
+document.getElementById('generate-stock-report-btn').addEventListener('click', generateStockReport);
+document.getElementById('print-stock-report-btn').addEventListener('click', printStockReport);
+
+// Generate Stock Report
+function generateStockReport() {
+    const filterType = document.getElementById('stock-filter-type').value;
+    
+    // Filter products based on selected type
+    let filteredProducts = [...allProducts];
+    let reportTitle = "All Products";
+    
+    if (filterType === 'in-stock') {
+        filteredProducts = allProducts.filter(product => product.product_quantity > 0);
+        reportTitle = "In-Stock Products";
+    } else if (filterType === 'out-of-stock') {
+        filteredProducts = allProducts.filter(product => product.product_quantity <= 0);
+        reportTitle = "Out-of-Stock Products";
+    }
+    
+    if (filteredProducts.length === 0) {
+        showMessage('stock-report-message', 'No products match the selected filter criteria', true);
+        return;
+    }
+    
+    // Update the report header
+    const currentDate = new Date();
+    document.getElementById('stock-generation-date').textContent = currentDate.toLocaleString();
+    document.getElementById('stock-report-filter-type').textContent = reportTitle;
+    
+    // Populate the report table
+    const reportTableBody = document.querySelector('#stock-report-table tbody');
+    reportTableBody.innerHTML = ''; // Clear existing rows
+    
+    filteredProducts.forEach(product => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${product.product_id}</td>
+            <td>${product.product_name}</td>
+            <td>${product.product_description.substring(0, 50)}${product.product_description.length > 50 ? '...' : ''}</td>
+            <td>${formatPrice(product.product_price)}</td>
+            <td>${product.product_quantity}</td>
+            <td>${product.product_quantity > 0 ? 'In Stock' : 'Out of Stock'}</td>
+        `;
+        reportTableBody.appendChild(row);
+    });
+    
+    // Update footer with total count
+    document.getElementById('total-products').textContent = filteredProducts.length;
+    
+    // Show the report and print button
+    document.getElementById('product-stock-report').style.display = 'block';
+    document.getElementById('print-stock-report-btn').style.display = 'inline-block';
+    
+    // Scroll to the report
+    document.getElementById('product-stock-report').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Print Stock Report
+function printStockReport() {
+    const reportContent = document.getElementById('product-stock-report').innerHTML;
+    const originalContent = document.body.innerHTML;
+    
+    document.body.innerHTML = `
+        <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+            ${reportContent}
+        </div>
+    `;
+    
+    window.print();
+    
+    // Restore original content after printing
+    document.body.innerHTML = originalContent;
+    
+    // Reattach event listeners after restoring content
+    document.getElementById('generate-stock-report-btn').addEventListener('click', generateStockReport);
+    document.getElementById('print-stock-report-btn').addEventListener('click', printStockReport);
+    
+    // Re-fetch products after restoration
+    fetchProducts();
+}
 
         // Fetch products when the page loads
         document.addEventListener('DOMContentLoaded', fetchProducts);

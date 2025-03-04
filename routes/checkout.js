@@ -7,74 +7,108 @@ const router = express.Router();
 router.post('/', (req, res) => {
   const { name, address, email, phone, total, items } = req.body;
 
-  console.log('Received Checkout Data:', { name, address, email, phone, total, items }); // Debugging
+  console.log('Received Checkout Data:', { name, address, email, phone, total, items });
 
-  // Convert total to a number, handling both string and number cases
-  let totalAmount;
-  if (typeof total === 'string') {
-    // If it's a string (possibly with "Rs." prefix)
-    totalAmount = parseFloat(total.replace('Rs.', '').trim());
-  } else {
-    // If it's already a number
-    totalAmount = parseFloat(total);
-  }
-
+  // Convert total to a number
+  let totalAmount = typeof total === 'string' ? parseFloat(total.replace('Rs.', '').trim()) : parseFloat(total);
+  
   if (isNaN(totalAmount)) {
     return res.status(400).json({ error: 'Invalid total amount' });
   }
 
-  // Insert order into the `orders` table
-  const orderQuery = `
-    INSERT INTO orders (name, address, email, phone, total)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-  dbConnection().query(orderQuery, [name, address, email, phone, totalAmount], (err, result) => {
+  // First, check if this customer already exists in the customer table
+  const checkCustomerQuery = 'SELECT * FROM customer WHERE cus_tel = ?';
+  
+  dbConnection().query(checkCustomerQuery, [phone], (err, customerResult) => {
     if (err) {
-      console.error('Error inserting order:', err); // Debugging
+      console.error('Error checking customer:', err);
       return res.status(500).send(err);
     }
-
-    const orderId = result.insertId; // Get the auto-generated order_id
-    console.log('Order inserted with ID:', orderId); // Debugging
-
-    // Insert order items into the `order_items` table
-    const orderItemsQuery = `
-      INSERT INTO order_items (order_id, products_id, quantity, price)
-      VALUES ?
+    
+    // If customer doesn't exist, add them to the customer table
+    if (customerResult.length === 0) {
+      const addCustomerQuery = `
+        INSERT INTO customer 
+        (cus_name, cus_email, cus_tel, cus_type, loyalty_status) 
+        VALUES (?, ?, ?, 'Online', 'No')
+      `;
+      
+      dbConnection().query(addCustomerQuery, [name, email, phone], (err, result) => {
+        if (err) {
+          console.error('Error adding customer:', err);
+          // Continue with order process even if customer creation fails
+        } else {
+          console.log('New customer added with ID:', result.insertId);
+        }
+        
+        // Continue with order process
+        processOrder();
+      });
+    } else {
+      // Customer exists, proceed with order
+      console.log('Customer already exists with ID:', customerResult[0].cus_id);
+      processOrder();
+    }
+  });
+  
+  // Function to process the order
+  function processOrder() {
+    // Insert order into the `orders` table
+    const orderQuery = `
+      INSERT INTO orders (name, address, email, phone, total)
+      VALUES (?, ?, ?, ?, ?)
     `;
-    const orderItemsValues = items.map(item => [
-      orderId, // order_id (foreign key)
-      item.id, // product_id
-      item.quantity, // quantity
-      item.price // price
-    ]);
-
-    dbConnection().query(orderItemsQuery, [orderItemsValues], (err, result) => {
+    
+    dbConnection().query(orderQuery, [name, address, email, phone, totalAmount], (err, result) => {
       if (err) {
-        console.error('Error inserting order items:', err); // Debugging
+        console.error('Error inserting order:', err);
         return res.status(500).send(err);
       }
 
-      console.log('Order items inserted successfully'); // Debugging
-      // Return receipt data to the client
-      res.json({ 
-        success: true, 
+      const orderId = result.insertId;
+      console.log('Order inserted with ID:', orderId);
+
+      // Insert order items
+      const orderItemsQuery = `
+        INSERT INTO order_items (order_id, products_id, quantity, price)
+        VALUES ?
+      `;
+      
+      const orderItemsValues = items.map(item => [
         orderId,
-        receiptData: {
-          orderId,
-          customerName: name,
-          address,
-          email,
-          phone,
-          items,
-          subtotal: parseFloat(totalAmount) - (parseFloat(totalAmount) * 0.05),
-          tax: parseFloat(totalAmount) * 0.05,
-          total: totalAmount,
-          orderDate: new Date().toLocaleString()
+        item.id,
+        item.quantity,
+        item.price
+      ]);
+
+      dbConnection().query(orderItemsQuery, [orderItemsValues], (err, result) => {
+        if (err) {
+          console.error('Error inserting order items:', err);
+          return res.status(500).send(err);
         }
+
+        console.log('Order items inserted successfully');
+        
+        // Return receipt data
+        res.json({ 
+          success: true, 
+          orderId,
+          receiptData: {
+            orderId,
+            customerName: name,
+            address,
+            email,
+            phone,
+            items,
+            subtotal: parseFloat(totalAmount) - (parseFloat(totalAmount) * 0.05),
+            tax: parseFloat(totalAmount) * 0.05,
+            total: totalAmount,
+            orderDate: new Date().toLocaleString()
+          }
+        });
       });
     });
-  });
+  }
 });
 
 // Get receipt data endpoint
@@ -125,5 +159,5 @@ router.get('/:orderId', (req, res) => {
     res.json(orderInfo);
   });
 });
-    
+
 module.exports = router;

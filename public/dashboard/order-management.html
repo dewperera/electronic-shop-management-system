@@ -213,6 +213,54 @@
             display: none;
             z-index: 1000;
         }
+        .report-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .report-container h2 {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .report-table th, .report-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .report-table th {
+            background-color: #f2f2f2;
+        }
+
+        .report-actions {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .report-actions button {
+            padding: 8px 16px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .report-actions button:hover {
+            background-color: #0b7dda;
+        }
     </style>
 </head>
 <body>
@@ -286,12 +334,70 @@
             </div>
             
             <div class="modal-actions">
-                <button id="rejectOrderBtn" class="reject-btn">Reject Order</button>
-                <button id="acceptOrderBtn" class="accept-btn">Accept Order</button>
+                <button id="rejectOrderBtn" class="reject-btn">-</button>
+                <button id="acceptOrderBtn" class="accept-btn">-</button>
             </div>
         </div>
     </div>
     
+    <div class="container">
+        <h1>Generate Report</h1>
+        
+        <div class="filter-container">
+            <!-- <select id="statusFilter">
+                <option value="all">All Orders</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            
+            <input type="date" id="dateFilter" placeholder="Filter by date">
+            
+            <button id="refreshBtn">Refresh</button> -->
+            <button id="generateReportBtn">Generate Report</button>
+        </div>
+        
+        <!-- <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+                </tbody>
+        </table> -->
+    </div>
+    
+    <div id="orderModal" class="modal">
+        </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <div id="orderReport" class="report-container">
+        <h2>Order Report</h2>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="reportTableBody">
+                </tbody>
+        </table>
+        <div class="report-actions">
+            <button id="printReportBtn">Print Report</button>
+        </div>
+    </div>
+
     <div id="notification" class="notification"></div>
     
     <script>
@@ -586,7 +692,66 @@ function updateOrderStatus(status) {
             showNotification('Error updating order status: ' + error.message, 'error');
         });
 }
+const generateReportBtn = document.getElementById('generateReportBtn');
+        const orderReport = document.getElementById('orderReport');
+        const reportTableBody = document.getElementById('reportTableBody');
+        const printReportBtn = document.getElementById('printReportBtn');
 
+        generateReportBtn.addEventListener('click', generateOrderReport);
+        printReportBtn.addEventListener('click', printOrderReport);
+
+        function generateOrderReport() {
+            const status = statusFilter.value;
+            const date = dateFilter.value;
+
+            fetch(`/api/orders?status=${status}&date=${date}`)
+                .then(response => response.json())
+                .then(orders => {
+                    reportTableBody.innerHTML = '';
+                    orders.forEach(order => {
+                        const row = document.createElement('tr');
+                         // Format date
+                        const orderDate = new Date(order.created_at);
+                        const formattedDate = orderDate.toLocaleDateString() + ' ' + orderDate.toLocaleTimeString();
+
+                        row.innerHTML = `
+                            <td>${order.orders_id}</td>
+                            <td>${order.name}</td>
+                            <td>${formattedDate}</td>
+                            <td>Rs. ${parseFloat(order.total).toFixed(2)}</td>
+                            <td>${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</td>
+                        `;
+                        reportTableBody.appendChild(row);
+                    });
+                    orderReport.style.display = 'block';
+                    orderReport.scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    console.error('Error generating report:', error);
+                    showNotification('Error generating report: ' + error.message, 'error');
+                });
+        }
+
+        function printOrderReport() {
+            const reportContent = document.getElementById('orderReport').innerHTML;
+            const originalContent = document.body.innerHTML;
+
+            document.body.innerHTML = `
+                <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    ${reportContent}
+                </div>
+            `;
+
+            window.print();
+
+            document.body.innerHTML = originalContent;
+
+            // Reattach event listeners after restoring content
+            generateReportBtn.addEventListener('click', generateOrderReport);
+            printReportBtn.addEventListener('click', printOrderReport);
+
+            loadOrders();
+        }
 </script>
 </body>
 </html>

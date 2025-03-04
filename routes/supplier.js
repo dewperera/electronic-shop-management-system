@@ -86,7 +86,7 @@ router.delete('/:id', (req, res) => {
 
 
 // Fetch a single supplier by ID
-router.get('/supplier/:id', (req, res) => {
+router.get('/:id', (req, res) => {
     const sup_id = req.params.id;
     const query = 'SELECT * FROM supplier WHERE sup_id = ?';
     dbConnection().query(query, [sup_id], (err, results) => {

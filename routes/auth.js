@@ -76,15 +76,7 @@ router.post('/login', (req, res) => {
     });
 });
 
-// First, create a new table for reset tokens (run this SQL once):
-// CREATE TABLE password_reset_tokens (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     cus_id INT NOT NULL,
-//     token VARCHAR(255) NOT NULL,
-//     expires_at DATETIME NOT NULL,
-//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//     FOREIGN KEY (cus_id) REFERENCES customer(cus_id) ON DELETE CASCADE
-// );
+
 
 // Forgot Password Endpoint
 router.post('/forgot-password', async (req, res) => {
@@ -208,45 +200,7 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-// Email sending function
-// async function sendPasswordResetEmail(email, resetUrl) {
-//     // Create a test account if you don't have real credentials
-//     // let testAccount = await nodemailer.createTestAccount();
-    
-//     // Create reusable transporter
-//     let transporter = nodemailer.createTransport({
-//         host: process.env.EMAIL_HOST || "smtp.ethereal.email",
-//         port: process.env.EMAIL_PORT || 587,
-//         secure: process.env.EMAIL_SECURE === 'true',
-//         auth: {
-//             user: process.env.EMAIL_USER, // Your email username
-//             pass: process.env.EMAIL_PASS, // Your email password
-//         },
-//     });
-    
-//     // Send mail with defined transport object
-//     let info = await transporter.sendMail({
-//        from: `"Cloudline Technologies" <${process.env.EMAIL_FROM || 'noreply@cloudlinetech.lk'}>`,
-//         to: email,
-//         subject: "Password Reset Request",
-//         text: `You requested a password reset. Please follow this link to reset your password: ${resetUrl}
-//                 This link will expire in 1 hour.
-//                 If you did not request a password reset, please ignore this email.`,
-//         html: `
-//             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-//                 <h2>Password Reset Request</h2>
-//                 <p>You requested a password reset for your Cloudline Technologies account.</p>
-//                 <p>Please click the button below to reset your password. This link will expire in 1 hour.</p>
-//                 <a href="${resetUrl}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 20px 0;">Reset Password</a>
-//                 <p>If you did not request a password reset, please ignore this email.</p>
-//                 <p>Regards,<br>Cloudline Technologies Team</p>
-//             </div>
-//         `,
-//     });
-    
-//     console.log("Password reset email sent: %s", info.messageId);
-//     return info;
-// }
+
 
 
 async function sendTestEmail(to, subject, text) {
