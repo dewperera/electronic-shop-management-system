@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Report Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .date-inputs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .date-input {
+            width: 48%;
+        }
+        .date-input label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .date-input input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        #reportTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #reportTable th, #reportTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        #reportTable th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        #printReport {
+            display: none;
+        }
+        #errorMessage {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #reportContainer, #reportContainer * {
+                visibility: visible;
+            }
+            #reportContainer {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sales Report Generator</h1>
+        
+        <div class="date-inputs">
+            <div class="date-input">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="date-input">
+                <label for="endDate">End Date</label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
+        
+        <button id="generateReport" class="btn">Generate Report</button>
+        
+        <div id="errorMessage"></div>
+        
+        <div id="reportContainer">
+            <table id="reportTable">
+                <thead>
+                    <tr>
+                        <th>Product Id</th>
+                        <th>Product Name</th>
+                        <th>Total Quantity Sold</th>
+                        <th>Total Sales Price</th>
+                    </tr>
+                </thead>
+                <tbody id="reportBody"></tbody>
+            </table>
+        </div>
+        
+        <button id="printReport" class="btn">Print Report</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const generateReportBtn = document.getElementById('generateReport');
+            const printReportBtn = document.getElementById('printReport');
+            const reportBody = document.getElementById('reportBody');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Set default date range (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            // Format dates to YYYY-MM-DD
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+
+            startDateInput.value = formatDate(thirtyDaysAgo);
+            endDateInput.value = formatDate(today);
+
+            generateReportBtn.addEventListener('click', () => {
+                // Clear previous results and error message
+                reportBody.innerHTML = '';
+                errorMessage.textContent = '';
+                printReportBtn.style.display = 'none';
+
+                // Construct the SQL query with date filtering
+                const query = `
+                SELECT 
+    p.product_id,
+    p.product_name,
+    
+    -- Quantity Sold
+    COALESCE(SUM(oi.quantity), 0) AS total_quantity_sold,
+    
+    -- Total Sales Price
+    ROUND(COALESCE(SUM(oi.quantity * oi.price), 0), 2) AS total_sales_price
+FROM 
+    Products p
+LEFT JOIN 
+    order_items oi ON p.product_id = oi.products_id
+GROUP BY 
+    p.product_id,  -- Include product_id in GROUP BY
+    p.product_name,
+    p.product_price,  -- Include product_price in GROUP BY
+    p.product_quantity  -- Include product_quantity in GROUP BY
+ORDER BY 
+    total_sales_price DESC;
+                `;
+
+                // Prepare the request
+                const requestData = {
+                    query: query,
+                    params: [startDateInput.value, endDateInput.value]
+                };
+
+                // Send AJAX request
+                fetch('/api/execute-query', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestData)
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+})
+.then(data => {
+    console.log('Data received:', data);
+
+    // Clear previous results
+    reportBody.innerHTML = '';
+
+    // Check if data is an array and has length
+    if (Array.isArray(data) && data.length > 0) {
+        // Populate the table with data
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.product_id}</td>
+            <td>${item.product_name}</td>
+            <td>${item.total_quantity_sold}</td>
+            <td>Rs. ${parseFloat(item.total_sales_price).toFixed(2)}</td>
+            `;
+            reportBody.appendChild(row);
+        });
+
+        // Show the print button
+        printReportBtn.style.display = 'block';
+    } else {
+        errorMessage.textContent = 'No data found for the selected date range.';
+    }
+})
+.catch(error => {
+    console.error('Fetch error:', error);
+    errorMessage.textContent = `Failed to generate report: ${error.message}`;
+});
+            });
+
+            printReportBtn.addEventListener('click', () => {
+                window.print();
+            });
+        });
+    </script>
+</body>
+</html>

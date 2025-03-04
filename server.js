@@ -129,7 +129,7 @@ const employeesRouter = require('./routes/employees');
 const transactionsRouter = require('./routes/transactions');
 const supplierRouter = require('./routes/supplier');
 const ownerRouter = require('./routes/owner');
-const salesRouter = require('./routes/sales');
+const salesRouter = require('./routes/sales'); 
 const reviewsRouter = require('./routes/reviews');
 const authRouter = require('./routes/auth');
 const customersRouter = require('./routes/customers');
@@ -143,12 +143,15 @@ const loginRouter = require('./routes/loginRouter');
 const resetPasswordRouter = require('./routes/resetPasswordRouter');
 const registerStaffRouter = require('./routes/registerStaffRouter');
 
+
+
 // Set up routes
 app.use("/api/employees", employeesRouter);
-app.use("/api/transactions", transactionsRouter);
+app.use("/transactions", transactionsRouter);
 app.use("/api/supplier", supplierRouter);
 app.use("/api/owner", ownerRouter);
-app.use("/api/sales", salesRouter);
+
+app.use('/api', salesRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/customers", customersRouter);
@@ -161,6 +164,9 @@ app.use('/api/billing', billingRouter);
 app.use(loginRouter);
 app.use(resetPasswordRouter);
 app.use(registerStaffRouter);
+
+
+
 
 // Home route redirects to login
 app.get('/', (req, res) => {
